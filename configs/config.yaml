@@ -1,0 +1,14 @@
+defaults:
+  - scenario: swarm_baseline
+  - tracker: jpda
+  - optimizer: contextual_bo
+  - experiment: week4_offline_bo
+  - _self_
+
+seed: 0
+log_dir: ./outputs
+
+wandb:
+  project: anumana
+  entity: null
+  mode: online

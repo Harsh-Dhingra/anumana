@@ -1,0 +1,14 @@
+# Contextual Bayesian optimization for tracker parameter tuning.
+name: contextual_bo
+acquisition: ucb
+context_features:
+  - estimated_target_density
+  - maneuver_intensity_proxy
+  - clutter_rate_proxy
+  - mean_track_snr_proxy
+search_space:
+  gate_size: [1.0, 20.0]
+  process_noise_scale: [0.1, 10.0]
+  pruning_threshold_log10: [-6.0, -1.0]
+num_initial_points: 10
+num_iterations: 50

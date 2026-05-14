@@ -1,0 +1,6 @@
+# Week 4 milestone: offline BO beats fixed-parameter baseline.
+name: week4_offline_bo
+mode: offline_bo
+num_scenarios: 30
+num_trials_per_scenario: 100
+metric: composite_ospa

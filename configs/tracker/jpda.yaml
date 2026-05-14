@@ -1,0 +1,6 @@
+# JPDA tracker parameters. Bounds for BO search live in the optimizer config.
+name: jpda
+gate_size: 5.0
+process_noise_diag: [1.0, 1.0, 1.0, 1.0]
+hypothesis_pruning_threshold: 1.0e-3
+imm_model_weights: null
