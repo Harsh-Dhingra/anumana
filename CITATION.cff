@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: "anumana: online autotuning of multi-target trackers for saturated swarm scenarios"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Dhingra
+    given-names: Harsh
+    email: dhingrah02@gmail.com
+repository-code: "https://github.com/Harsh-Dhingra/anumana"
+license: BSD-3-Clause
+version: 0.0.1
+date-released: 2026-05-14
+keywords:
+  - multi-target tracking
+  - bayesian optimization
+  - counter-uas
+  - swarm
+  - stone soup
+  - autotuning

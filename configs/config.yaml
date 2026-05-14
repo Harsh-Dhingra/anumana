@@ -11,4 +11,4 @@ log_dir: ./outputs
 wandb:
   project: anumana
   entity: null
-  mode: online
+  mode: disabled  # set to "online" once you've run `wandb login`

@@ -4,4 +4,7 @@ Sanskrit "anumana" (अनुमान) means "inference," from the Nyaya school
 classical Indian logic and epistemology.
 """
 
+from anumana.tuner import AutoTuner, TuningResult
+
 __version__ = "0.0.1"
+__all__ = ["AutoTuner", "TuningResult"]
