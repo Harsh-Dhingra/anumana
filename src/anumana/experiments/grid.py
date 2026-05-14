@@ -54,6 +54,7 @@ class GridResult:
                 "best_score": self.best_score,
                 "best_iteration": self.best_iteration,
                 "runtime_s": self.runtime_s,
+                "history": str(self.history),
             }
         )
         d.update({f"feat_{k}": v for k, v in self.scene_features.items()})

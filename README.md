@@ -34,13 +34,37 @@ The tuner observes scene-context features on a sliding window — estimated targ
 ## Project layout
 
 ```
-src/anumana/        # library code
+src/anumana/
+  scenarios/        # SwarmScenario, Stone Soup-backed swarm simulator
+  trackers/         # JPDA tracker wrapped with telemetry instrumentation
+  metrics/          # OSPA, GOSPA, ID switches, fragmentation, composite reward
+  optimizers/       # RandomSearch baseline + BayesOpt (GP-UCB via BoTorch)
+  context/          # Scene-context feature extractor
+  experiments/      # Multi-scenario grid harness
+  tuner.py          # AutoTuner: scenario → tracker → metric → optimizer loop
+
 configs/            # Hydra config tree (scenario, tracker, optimizer, experiment)
-experiments/        # experiment entry points
-notebooks/          # exploration only
-tests/              # pytest suite
-scripts/            # one-off utilities
-docs/               # documentation
+scripts/            # Hydra entry points and analysis utilities
+tests/              # pytest suite (smoke + integration + grid)
+docs/               # design.md (paper seed), contextual_bo.md, litreview.md, research_log.md
+```
+
+## Quick start
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+
+# single-scenario BO demo
+python scripts/run_experiment.py
+
+# multi-scenario grid sweep
+python scripts/run_grid.py --kind pilot --num-trials 12 --csv outputs/grid/pilot.csv
+python scripts/analyse_grid.py --csv outputs/grid/pilot.csv --plot
+
+# tests
+pytest tests/
 ```
 
 ## License

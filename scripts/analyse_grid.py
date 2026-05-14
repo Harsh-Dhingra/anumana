@@ -74,6 +74,57 @@ def per_cell_table(pivot: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def convergence_plot(df: pd.DataFrame, out_path: Path) -> None:
+    """Plot mean best-so-far convergence curve across all (cell, seed) pairs."""
+    import ast
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(7, 4))
+    by_opt: dict[str, list[np.ndarray]] = {}
+    # `history` is not in the CSV (we only saved best_score), so reconstruct
+    # the per-trial best-so-far from the trial CSV if present.
+    if "history" not in df.columns:
+        # Use best_iteration + best_score to approximate the curve.
+        for opt_name in df["optimizer"].unique():
+            sub = df[df["optimizer"] == opt_name]
+            ax.scatter(sub["best_iteration"], sub["best_score"],
+                       label=f"{opt_name} (best iter)", alpha=0.5)
+        ax.set_xlabel("iteration where best was found")
+        ax.set_ylabel("best score")
+        ax.set_title("Best score vs iteration (per cell-seed pair)")
+        ax.legend()
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.tight_layout()
+        fig.savefig(out_path, dpi=140)
+        print(f"  scatter -> {out_path}")
+        return
+
+    for opt_name in sorted(df["optimizer"].unique()):
+        sub = df[df["optimizer"] == opt_name]
+        histories = [np.array(ast.literal_eval(h)) for h in sub["history"]]
+        max_len = max(len(h) for h in histories)
+        cumulative = np.full((len(histories), max_len), np.nan)
+        for i, h in enumerate(histories):
+            best_so_far = np.minimum.accumulate(h)
+            cumulative[i, :len(best_so_far)] = best_so_far
+        mean = np.nanmean(cumulative, axis=0)
+        std = np.nanstd(cumulative, axis=0)
+        x = np.arange(1, max_len + 1)
+        ax.plot(x, mean, label=opt_name, linewidth=2)
+        ax.fill_between(x, mean - std, mean + std, alpha=0.2)
+
+    ax.set_xlabel("trial")
+    ax.set_ylabel("best score so far (lower is better)")
+    ax.set_title("Mean best-so-far across cells")
+    ax.legend()
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=140)
+    print(f"  convergence -> {out_path}")
+
+
 def heatmap(pivot: pd.DataFrame, out_path: Path) -> None:
     import matplotlib.pyplot as plt
 
