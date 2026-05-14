@@ -32,6 +32,7 @@ dependencies = [
     "torch",
     "numpy",
     "scipy",
+    "pandas",
     "hydra-core",
     "wandb",
 ]
