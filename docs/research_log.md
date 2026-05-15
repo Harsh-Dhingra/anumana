@@ -274,3 +274,77 @@ expect of GP-based methods (smooth in-distribution, poor extrapolation).
   (b) move on to phase 1.3 (IMM weights) or 1.5 (lit review).
 - Compute scaling is finally biting: N=12 cells took up to 170s each.
   Need joblib parallelism before any further scaling.
+
+---
+
+## 2026-05-15 (late evening) — Phase 1.5 lit review, first pass
+
+**Goal:** confirm or kill the contextual-BO-for-tracker-autotuning
+contribution before spending more engineering. Specifically the
+~30%-prior-art risk that was flagged at the start of the project.
+
+**Did:**
+- Ran eight targeted searches across arxiv, IEEE Xplore, ScienceDirect,
+  Google Scholar via WebSearch/WebFetch.
+- Triaged hits by threat level (RED/ORANGE/YELLOW/GREEN), wrote each up
+  in [docs/litreview.md](litreview.md).
+- Updated [docs/design.md](design.md) with the new positioning.
+
+**Findings:**
+- **No RED threats.** Nobody has published "contextual BO for
+  tracker autotuning on radar MTT" specifically.
+- **Two ORANGE threats** (same problem, different method) — both from
+  the same TUM/FAU group:
+  1. **Stephan et al. 2022, *"Scene-adaptive radar tracking with deep
+     reinforcement learning"*** (Machine Learning with Applications).
+     Deep RL with reward formulations tied to an Unscented Kalman
+     Filter. Owns the "scene-adaptive radar tracker parameter tuning"
+     framing from the RL angle.
+  2. **Ott et al. 2022, *"Uncertainty-based Meta-RL for Robust Radar
+     Tracking"*** (arXiv:2210.14532). Meta-RL + OOD detection for
+     cross-scenario tracking. 16% over Meta-RL baselines, 72% F1 OOD
+     detection.
+- **One YELLOW threat:** *Tuning Multi Object Tracking Systems using
+  Bayesian Optimization* (FUSION 2021, IEEE 9626895). TPE on GM-PHD,
+  no context, no transfer.
+
+**Verdict: GO with adjusted positioning.**
+
+The novelty framing shifts from "first scene-adaptive tracker tuner"
+(Stephan 2022 has that) to **"first contextual Bayesian optimization
+approach to scene-adaptive tracker autotuning, sample-efficient
+alternative to RL methods, demonstrated on JPDA in counter-UAS swarm
+scenarios."**
+
+This is *better* for the paper because:
+- Clear positioning against named prior work, easy for reviewers to
+  place us.
+- Sample-efficiency story is concrete: BO ~10^2 training points, RL
+  ~10^4-10^6.
+- v3's "fails on clutter extrapolation" result becomes a planted
+  future-work hook ("extending contextual BO with OOD detection a la
+  Ott 2022").
+- Open-source `anumana` library is real differentiation — none of the
+  prior work shipped code.
+
+**What this changes in the project plan:**
+1. **Phase 1.4 (PPO baseline) is now critical, not nice-to-have.** We
+   must compare contextual BO to an RL baseline on the same task or
+   reviewers will ask "why didn't you compare to Stephan 2022?"
+2. **Working title:** *"Contextual Bayesian Optimization for
+   Sample-Efficient Scene-Adaptive Multi-Target Tracker Autotuning."*
+3. **Must-read first:** Stephan 2022 full paper, then Ott 2022, then
+   Krause-Ong 2011 (the theoretical foundation), then FUSION 2021
+   "Tuning MOT with BO."
+4. **Open issues:** full FUSION 2023/2024/2025 proceedings haven't
+   been combed paper-by-paper; defense-specific venues (SPIE, IET,
+   AESS) also not deeply searched. ~10-20% residual prior-art risk.
+
+**Next:**
+- READ the two ORANGE-threat papers in full (this is on the user, not
+  the assistant — agent can summarise abstracts, not digest method
+  sections rigorously).
+- Phase 1.4: build PPO baseline so the sample-efficiency comparison is
+  on solid ground. The RL baseline is now load-bearing for the paper.
+- Either before or in parallel: comb FUSION 2024 / 2025 proceedings by
+  hand for any closer prior art that wasn't surfaced by web search.

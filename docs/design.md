@@ -3,6 +3,20 @@
 This is the working technical design document. The eventual workshop paper
 grows out of this file.
 
+**Working title (post lit-review 2026-05-15):** *"Contextual Bayesian
+Optimization for Sample-Efficient Scene-Adaptive Multi-Target Tracker
+Autotuning."*
+
+**Positioning vs prior art:** the closest prior work is Stephan et al.
+2022 (*"Scene-adaptive radar tracking with deep reinforcement learning,"*
+Machine Learning with Applications) and Ott et al. 2022 (*"Uncertainty-
+based Meta-RL for Robust Radar Tracking,"* arXiv:2210.14532). Both tackle
+scene-adaptive tracker parameter tuning via RL/meta-RL. Our contribution
+is the **contextual Bayesian optimization alternative**, which achieves
+comparable cross-scenario generalization with orders-of-magnitude fewer
+training rollouts. See [docs/litreview.md](litreview.md) for the full
+threat triage.
+
 ## Problem
 
 Multi-target trackers (Kalman + JPDA/MHT/IMM) have parameters — gate sizes,
