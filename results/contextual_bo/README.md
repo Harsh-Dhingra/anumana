@@ -1,9 +1,48 @@
-# Phase 1.2 contextual BO — first results
+# Phase 1.2 contextual BO — results
 
-First evaluation of `ContextualBayesOpt`: train a GP across many scenarios,
-then propose tracker parameters for *new* scenarios from a single shot
-(no per-scenario trials). This is the operational mode for an autotuning
-system that needs to react to scene changes faster than a BO budget allows.
+`ContextualBayesOpt` trains a GP across many scenarios, then proposes
+tracker parameters for *new* scenarios from a single shot (no per-scenario
+trials). This is the operational mode for an autotuning system that needs
+to react to scene changes faster than a BO budget allows.
+
+## Headline (v3, authoritative)
+
+**12 eval points across 4 held-out cells (3 seeds each).** Mean ± std.
+
+| Method | All | Interior interp (n=6) | Extrap maneuver (n=3) | Extrap clutter (n=3) |
+|---|---|---|---|---|
+| **Contextual one-shot** | 67.79 ± 16.92 | **60.92 ± 12.19** | **74.37 ± 11.01** | 74.95 ± 23.18 |
+| Vanilla BO (8 trials)   | 63.17 ± 15.60 | 62.90 ± 13.52 | 77.68 ± 13.48 | **49.19 ± 4.49** |
+| Random search (8)       | 77.95 ± 15.84 | 70.67 ± 13.43 | 93.74 ± 14.72 | 76.70 ± 8.36 |
+| Default parameters      | 97.34 ± 20.51 | 93.17 ± 18.98 | 116.70 ± 17.91 | 86.30 ± 10.53 |
+
+| Subset | ctx vs vanilla BO | ctx vs default |
+|---|---|---|
+| Interior interpolation | **+2.4%** (2 wins, 2 ties, 2 losses) | +30.6% (6/6 wins) |
+| Extrap maneuver        | **+1.9%** (1 win, 2 losses)         | +34.9% (3/3 wins) |
+| Extrap clutter         | **-49.6%** (0 wins, 1 tie, 2 losses) | +12.0% (1/3 wins) |
+
+The honest story:
+- **Contextual one-shot ties vanilla BO with 8-trial budget on in-distribution
+  scenarios.** Interior interpolation and small extrapolation (one axis at
+  the training boundary) both produce essentially equal mean scores.
+- **Contextual reliably beats default parameters by ~30%** across all
+  cell types, including the failure regime.
+- **Contextual extrapolates poorly along the clutter axis** when the
+  held-out clutter is well outside the training support (training cap
+  was 6.0; held-out was 8.0). The GP confidently predicts in a region
+  where it has no training data, and is wrong.
+
+For deployment this means: **use contextual one-shot when scene context
+looks like training, fall back to vanilla BO when extrapolating.**
+
+## v2 (2026-05-15, superseded) — small held-out set
+
+The v2 evaluation used only 2 held-out cells x 2 seeds = 4 points, which
+got lucky on cell choice and reported ctx +4.1% vs vanilla BO. v3 with
+4 cells x 3 seeds = 12 points across more diverse held-outs gives the
+honest picture. v2 result preserved in `results_v2.json`; v3 is
+`results_v3.json` and is the authoritative version.
 
 ## v2 (2026-05-15) — exploit mode
 

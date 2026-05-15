@@ -201,3 +201,76 @@ Archived to [results/contextual_bo/](../results/contextual_bo/).
 - Begin lit review in parallel (Frazier BO tutorial, Krause-Ong contextual
   BO, Stone Soup paper).
 - Fix Stone Soup seeding for reproducibility.
+
+---
+
+## 2026-05-15 (evening) — Phase 1.2 v3 expanded, more honest result
+
+**Goal:** firm up the v2 contextual BO result (n=4) with a properly sized
+held-out set covering interior interpolation and extrapolation along both
+clutter and maneuver axes.
+
+**Did:**
+- Stone Soup non-determinism fix: `SwarmScenario._materialize` now
+  snapshots numpy's global RNG state, seeds it from `cfg.seed + 10000`,
+  iterates, and restores. Two `SwarmScenario(cfg)` instances now produce
+  byte-identical detection streams (verified by
+  `tests/test_pipeline.py::test_scenario_deterministic`).
+- Expanded the held-out set in `scripts/run_contextual_bo.py
+  --expanded-train` to 4 cells covering both interpolation
+  (N=7 clut=2 man=0.3; N=9 clut=4 man=0.3) and extrapolation along
+  clutter (N=10 clut=8 man=0.5) and maneuver (N=8 clut=3 man=1.0).
+- Wrote `scripts/analyse_contextual_bo.py` with bootstrap CIs and a
+  cell-kind split (interior_interpolation / extrapolation_clutter /
+  extrapolation_maneuver).
+- Ran the expanded experiment: 12 training cells x 3 seeds x 8 BO trials
+  -> 288 (theta, c, y) triples; 4 held-out cells x 3 eval seeds = 12
+  evaluation points. Wall-clock 10-12 min total.
+
+**Results (v3, authoritative):**
+
+| Method                  | All (n=12)  | Interior (n=6) | Extrap-maneuver (n=3) | Extrap-clutter (n=3) |
+|-------------------------|-------------|----------------|-----------------------|----------------------|
+| **Contextual one-shot** | 67.79 ± 16.92 | **60.92 ± 12.19** | **74.37 ± 11.01** | 74.95 ± 23.18 |
+| Vanilla BO (8 trials)   | 63.17 ± 15.60 | 62.90 ± 13.52  | 77.68 ± 13.48         | **49.19 ± 4.49**     |
+| Random search (8)       | 77.95 ± 15.84 | 70.67 ± 13.43  | 93.74 ± 14.72         | 76.70 ± 8.36         |
+| Default parameters      | 97.34 ± 20.51 | 93.17 ± 18.98  | 116.70 ± 17.91        | 86.30 ± 10.53        |
+
+Contextual vs vanilla BO improvement %:
+- interior interpolation: +2.4% (2 wins, 2 ties, 2 losses) — effectively tied
+- extrap maneuver: +1.9% (1 win, 2 losses) — effectively tied
+- extrap clutter: -49.6% (0 wins, 1 tie, 2 losses) — clear failure
+
+Contextual vs default improvement %:
+- interior interpolation: +30.6% (6/6 wins)
+- extrap maneuver: +34.9% (3/3 wins)
+- extrap clutter: +12.0% (1/3 wins; the other 2 perform worse than default)
+
+**Surprises:**
+- The v2 result of +4.1% vs vanilla BO was an artifact of small n
+  (4 eval points) landing on easy cells. The honest result with 12
+  points across 4 distinct cell types is that **contextual one-shot
+  ties full-budget vanilla BO** in-distribution rather than beating it.
+- Extrapolation failure is dramatic. On N=10 clut=8 (training capped at
+  clutter=6), the GP confidently predicts and is badly wrong. Two of
+  three seeds produced scores that were *worse than default parameters*.
+- The extrap_maneuver cell (man=1.0, training capped at man=0.5) was
+  surprisingly fine — same pattern as in-distribution. Maneuver
+  extrapolation appears easier than clutter extrapolation, possibly
+  because process noise scales monotonically with maneuver in a way the
+  GP captures.
+
+**What this means for the paper:**
+The story is "contextual one-shot replaces N-trial BO for in-distribution
+scenarios; falls back to vanilla BO for out-of-distribution clutter; both
+beat defaults by ~30%." That's a stronger and more honest contribution
+than "ctx beats everything everywhere" — and aligns with what reviewers
+expect of GP-based methods (smooth in-distribution, poor extrapolation).
+
+**Next:**
+- Mention v3 as authoritative result; commit + push.
+- Decide between (a) push contextual harder (sparse GPs, better kernels,
+  ensemble methods) for the paper's "method extensions" section, vs
+  (b) move on to phase 1.3 (IMM weights) or 1.5 (lit review).
+- Compute scaling is finally biting: N=12 cells took up to 170s each.
+  Need joblib parallelism before any further scaling.
