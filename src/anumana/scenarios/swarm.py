@@ -110,11 +110,27 @@ class SwarmScenario:
         )
 
     def _materialize(self) -> None:
+        """Iterate the underlying Stone Soup simulators and cache results.
+
+        Stone Soup's `ConstantVelocity` (process noise) and
+        `SimpleDetectionSimulator` (clutter generation, detection misses)
+        both draw from numpy's global RNG. To make scenarios reproducible
+        across processes and across calls, we snapshot the global RNG
+        state, seed it deterministically from `cfg.seed`, materialise, and
+        restore on exit so we don't leak side-effects into the caller.
+        """
         self._frames: list = []
         truths: set = set()
-        for timestamp, detections in self._det_sim:
-            self._frames.append((timestamp, set(detections)))
-            truths.update(self._gt_sim.groundtruth_paths)
+        saved_state = np.random.get_state()
+        # Offset so the simulator seed doesn't collide with the seed used
+        # for initial-state placement in `_build`.
+        np.random.seed(self.cfg.seed + 10_000)
+        try:
+            for timestamp, detections in self._det_sim:
+                self._frames.append((timestamp, set(detections)))
+                truths.update(self._gt_sim.groundtruth_paths)
+        finally:
+            np.random.set_state(saved_state)
         self._truths = truths
 
     def __iter__(self) -> Iterator:

@@ -63,3 +63,39 @@ def test_bayes_opt_loop(small_scenario):
     result = AutoTuner(small_scenario, BayesOpt(seed=0)).optimize(6)
     assert len(result.trials) == 6
     assert result.best_score == min(t.score for t in result.trials)
+
+
+def test_scenario_deterministic():
+    """Two SwarmScenarios with the same config + seed produce identical frames.
+
+    Stone Soup's process-noise and clutter generation use numpy's global RNG;
+    `_materialize` seeds it deterministically and restores afterwards so
+    repeated construction is reproducible.
+    """
+    import numpy as np
+
+    cfg = SwarmScenarioConfig(
+        num_targets=4,
+        duration_steps=12,
+        clutter_rate=2.0,
+        seed=999,
+    )
+    a = SwarmScenario(cfg)
+    b = SwarmScenario(cfg)
+    a_frames = list(a)
+    b_frames = list(b)
+    assert len(a_frames) == len(b_frames)
+    for (ta, da), (tb, db) in zip(a_frames, b_frames):
+        assert ta == tb
+        assert len(da) == len(db), "detection counts diverge between runs"
+        a_positions = np.sort(
+            np.array([np.asarray(d.state_vector).flatten() for d in da]).round(6),
+            axis=0,
+        )
+        b_positions = np.sort(
+            np.array([np.asarray(d.state_vector).flatten() for d in db]).round(6),
+            axis=0,
+        )
+        assert np.allclose(a_positions, b_positions), (
+            "detection positions diverge between runs"
+        )

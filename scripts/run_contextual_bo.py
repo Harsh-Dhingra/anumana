@@ -182,13 +182,25 @@ def _train_cells(expanded: bool = False) -> list[GridCell]:
     return cells
 
 
-def _held_out_cells() -> list[GridCell]:
+def _held_out_cells(expanded: bool = False) -> list[GridCell]:
     base = dict(duration_steps=20, detection_probability=0.9)
+    if not expanded:
+        return [
+            # Interior interpolation
+            GridCell(num_targets=8, clutter_rate=3.0, maneuver_intensity=0.5, **base),
+            # Extrapolation along clutter axis
+            GridCell(num_targets=10, clutter_rate=6.0, maneuver_intensity=0.5, **base),
+        ]
+    # Larger held-out for statistically meaningful CIs. None of these cells
+    # appear in `_train_cells(expanded=True)`.
     return [
-        # Interior interpolation
-        GridCell(num_targets=8, clutter_rate=3.0, maneuver_intensity=0.5, **base),
-        # Extrapolation along clutter axis
-        GridCell(num_targets=10, clutter_rate=6.0, maneuver_intensity=0.5, **base),
+        # Interior interpolation (all three axes between training cells)
+        GridCell(num_targets=7, clutter_rate=2.0, maneuver_intensity=0.3, **base),
+        GridCell(num_targets=9, clutter_rate=4.0, maneuver_intensity=0.3, **base),
+        # Extrapolation along clutter axis (above training max of 6.0)
+        GridCell(num_targets=10, clutter_rate=8.0, maneuver_intensity=0.5, **base),
+        # Extrapolation along maneuver axis (above training max of 0.5)
+        GridCell(num_targets=8, clutter_rate=3.0, maneuver_intensity=1.0, **base),
     ]
 
 
@@ -206,7 +218,7 @@ def main() -> None:
     args = ap.parse_args()
 
     train_cells = _train_cells(expanded=args.expanded_train)
-    held_out = _held_out_cells()
+    held_out = _held_out_cells(expanded=args.expanded_train)
 
     print("=== contextual BO ===")
     print(f"  train cells:    {len(train_cells)}")
