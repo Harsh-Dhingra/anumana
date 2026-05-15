@@ -348,3 +348,94 @@ This is *better* for the paper because:
   on solid ground. The RL baseline is now load-bearing for the paper.
 - Either before or in parallel: comb FUSION 2024 / 2025 proceedings by
   hand for any closer prior art that wasn't surfaced by web search.
+
+---
+
+## 2026-05-15 (late evening, deep pass) — Phase 1.5 deep lit review
+
+**Goal:** convert the ~30% residual prior-art risk into hard data.
+Search aggressively, read closest prior art in full, update the novelty
+call.
+
+**Did:**
+- Eight additional WebSearch queries plus targeted WebFetch on
+  candidate papers and conference proceedings.
+- Pulled FUSION 2023, 2024, 2025 dblp paper-title lists: **no direct
+  hits** at title level.
+- arXiv 2024–2026 sweeps on "contextual Bayesian optimization sensor
+  parameter," "cognitive radar BO," "scene-adaptive tracking 2024":
+  **no direct hits.**
+- IEEE TAES + IET Radar Sonar & Nav recent listings: **no direct
+  hits.**
+- Checked Stone Soup itself for built-in BO-tuned components: the
+  sensor managers ship Random / BruteForce / Greedy / OptimizeBrute /
+  OptimizeBasinHopping / MCTS variants. None are BO-tuned, none are
+  context-conditioned, none target tracker hyperparameter selection.
+- GitHub code search ("Stone Soup Bayesian optimization tuning tracker
+  open source"): **no equivalent library found.**
+- **Read Ott et al. 2022 end-to-end** (PDF saved via WebFetch then
+  parsed). Findings tightened the novelty call:
+  - Their **context prior** is a 2-D Gaussian on RAI mean and std.
+    Same structural idea as our `SceneFeatures` (we use 3-D).
+  - They tune **14-dim UKF hyperparameter** action space (gating
+    threshold + Q + R covariance entries).
+  - They train **3 rooms → test 2 unseen rooms.** 4M training steps.
+  - Beat fixed-param baseline by 35%; MAML/Reptile by 16%; OOD F1=72%.
+  - Code not public.
+
+**Findings:**
+- **No RED threats** found even with deep search.
+- **Ott 2022 elevated to ORANGE-RED.** The "context prior + cross-
+  scenario tracker tuning" framing is theirs. Reading the full paper
+  narrows our novelty more than the first-pass abstract triage
+  suggested.
+
+**Verdict (updated):** Still GO, with **further narrowed positioning.**
+The contribution is:
+- First **contextual Bayesian optimization** approach to this problem
+  (vs Ott/Stephan's meta-RL+SAC).
+- First on **JPDA + Stone Soup** (vs UKF + custom Infineon pipeline).
+- First with **counter-UAS swarm framing**.
+- First with **open-source implementation**.
+- Sample-efficiency story: ~10² BO observations vs ~4×10⁶ RL steps
+  to convergence.
+
+Suggested paper framing (replaces my earlier "first scene-adaptive
+tracker tuner"):
+
+> "We adapt the context-prior framework for scene-adaptive tracker
+> parameter tuning (Ott et al., 2022; Stephan et al., 2022) to a
+> Bayesian optimization setting. Where prior work uses meta-RL+SAC
+> requiring O(10^6) training steps, our contextual GP-UCB achieves
+> comparable cross-scenario generalization from O(10^2) training
+> points. We demonstrate on JPDA trackers in counter-UAS swarm
+> scenarios using the open-source Stone Soup library, the first
+> publicly released implementation in this line of work."
+
+**Surprises:**
+- Reading Ott 2022 in full showed the conceptual overlap is *closer*
+  than abstract-level triage suggested. The "context prior" lexicon
+  itself is theirs.
+- But: their method (meta-RL+SAC), tracker (UKF), domain (indoor
+  person tracking), and code (not public) leave four meaningful axes
+  of differentiation for us.
+- The honest positioning is "BO alternative + open source +
+  counter-UAS framing," not "novel problem framing."
+
+**Implications for project plan:**
+- **Phase 1.4 (PPO baseline) is now load-bearing.** Without a
+  head-to-head sample-efficiency comparison, the paper has no story.
+  This was previously "nice-to-have"; it's now the whole paper.
+- The eventual benchmark comparison ideally re-implements Ott 2022 or
+  at minimum an SB3 PPO on the same hyperparameter space. The
+  Infineon dataset isn't public so exact reproduction is impossible;
+  a clean PPO on the same Stone Soup task is the realistic comparison.
+
+**Next:**
+- User: read Stephan 2022 (paywalled, needs institutional access) and
+  Ott 2022 (arXiv, free — PDF already on disk) in full.
+- Phase 1.4: start PPO baseline via Stable-Baselines3 on the same
+  search space.
+- Phase 1.5 follow-ups (deferred): SPIE Defense + Commercial Sensing
+  proceedings, IEEE Radar Conference 2024/2025, Chinese radar venues.
+  ~10-15% residual prior-art risk.

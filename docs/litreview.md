@@ -5,57 +5,76 @@ contribution. Each entry has: short summary, relevance, and an explicit
 *threat level* (RED = direct prior art, ORANGE = same problem different
 method, YELLOW = adjacent or supporting, GREEN = background/foundational).
 
-## Threat triage (2026-05-15)
+## Updated threat triage (2026-05-15, deep-pass)
 
-### ORANGE — closest prior art, must cite and position against
+After extensive search: full FUSION 2023/2024/2025 dblp listings, arXiv
+2024–2026 targeted queries, IEEE TAES + IET Radar Sonar & Nav, defense
+venues, GitHub code search, Stone Soup itself (sensor managers, not
+BO-tuned), and the full text of Ott et al. 2022. Findings tightened
+materially.
+
+**Key update:** reading Ott 2022 in full revealed that the
+**"context prior for cross-scenario tracker parameter tuning"** framing
+is theirs (2022). They use a 2-D context vector (RAI mean and std);
+we use a 3-D one (target density, measurement rate, dispersion). The
+*conceptual* contribution narrows to **method (contextual BO vs
+meta-RL) + tracker (JPDA on Stone Soup vs UKF on Infineon pipeline) +
+scenarios (counter-UAS swarm vs indoor person tracking) + open source**.
+
+**Net verdict: still GO, with further narrowed positioning.** No RED
+threat surfaced after the deep pass. The contribution is real but
+narrower than my first-pass write-up suggested.
+
+### ORANGE-RED — closest prior art, must cite and position against
+
+#### Ott, Servadei, Mauro, Stadelmayer, Santra, Wille (2022) *(full text read)*
+**"Uncertainty-based Meta-Reinforcement Learning for Robust Radar Tracking"**
+[arXiv:2210.14532](https://arxiv.org/abs/2210.14532), Infineon Technologies + TUM.
+
+- **Problem:** scene-adaptive tracker parameter tuning with
+  cross-scenario generalization. Identical framing to ours.
+- **Method:** Meta-RL with SAC + bootstrap critic with random priors.
+- **Context prior:** 2-D Gaussian context, **mean and std of the
+  Range-Angle Image (RAI) intensity** — proxies for scene difficulty.
+  Sampled and added to actor and critic hidden layers.
+- **Tracker:** Unscented Kalman Filter (UKF). 14-dimensional action
+  space (gating threshold + Q/R covariance entries).
+- **Reward:** `−R = ρ(N̂, N) + (1/M) Σ (1 − pₖ(Pₖ))` — relative target-
+  count error + likelihood of missing ground-truth positions under the
+  UKF variance.
+- **Eval split:** train on 3 rooms, test on 2 unseen rooms.
+  4M training steps to convergence.
+- **Result:** beats fixed-parameter baseline by **35%**, beats
+  MAML/Reptile by **16%**, OOD detection **F1 = 72%**.
+- **Code:** not public (Infineon dataset, indoor person tracking).
+- **Differences from us:**
+  - Meta-RL+SAC vs contextual GP-UCB
+  - UKF vs JPDA + Stone Soup
+  - 2-D RAI-intensity context vs 3-D scene-feature context
+  - Indoor person tracking vs counter-UAS swarm scenarios
+  - 4M training steps vs ~10² BO observations
+  - Has OOD detection; we don't (our v3 fails silently on extrapolation)
+- **Threat level:** **ORANGE-RED**. The "context prior for cross-
+  scenario tracker tuning" idea is theirs. Our differentiation is
+  method + tracker + scenarios + open source + sample efficiency.
 
 #### Stephan, Servadei, Arjona-Medina, Santra, Wille, Fischer (2022)
 **"Scene-adaptive radar tracking with deep reinforcement learning"**
 *Machine Learning with Applications*, vol. 8, p. 100284.
 [DOI](https://doi.org/10.1016/j.mlwa.2022.100284) ·
 [FAU CRIS](https://cris.fau.de/publications/280896216/)
+(PDF paywalled at Elsevier; abstract + Ott 2022's reference [16] confirm setup.)
 
-- **Problem:** identical to ours — tracker parameters are usually set by
-  engineers and "independent of the scene tracked, often resulting in
-  non-optimal and poorly performing tracking." Proposes scene-adaptive
-  parameter choice.
-- **Method:** Deep Reinforcement Learning, with reward formulations
-  adapted to the dynamics of an Unscented Kalman Filter tracker.
-- **Differences from us:**
-  - RL not contextual BO (less sample-efficient by design)
-  - UKF, not JPDA (different tracker family)
-  - Different scenarios (not counter-UAS / swarm specifically)
-- **Threat level:** **ORANGE**. They own the "scene-adaptive radar
-  tracker parameter tuning" framing from the RL angle. We must
-  position our work as "the sample-efficient BO alternative" rather
-  than "first to do this."
-- **Action:** READ FULL PAPER. Identify their parameter set, reward
-  formulation, evaluation protocol. Plan to cite as the primary prior
-  work in our introduction and to use as a comparison baseline if
-  possible.
-
-#### Ott, Servadei, et al. (2022)
-**"Uncertainty-based Meta-Reinforcement Learning for Robust Radar Tracking"**
-[arXiv:2210.14532](https://arxiv.org/abs/2210.14532)
-
-- **Problem:** generalize tracker behavior to unseen scenarios via
-  meta-RL, with OOD detection on top.
-- **Method:** Meta-RL + uncertainty-based out-of-distribution detection.
-- **Result:** 16% over related Meta-RL approaches, 35% over baselines,
-  72% F1 on OOD detection.
-- **Differences from us:**
-  - Meta-RL not BO
-  - Same TUM/FAU group; same problem framing
-  - Does NOT compare to BO methods
-  - No swarm/counter-UAS framing
-- **Threat level:** **ORANGE**. Same problem space, different method.
-  Important because they explicitly address cross-scenario generalization
-  — which is also our v3 evaluation axis. They claim OOD detection,
-  which aligns with our finding that contextual GP fails on extrapolation
-  (their meta-RL detects OOD; ours fails silently).
-- **Action:** READ FULL PAPER. Their OOD-detection mechanism may inspire
-  a fallback for our contextual GP when the test context is far from
-  training support.
+- **Problem:** scene-adaptive radar tracker parameter tuning. Original
+  paper that Ott 2022 cites as the basis.
+- **Method:** Deep RL with PPO (from Ott's ref [16]); two reward
+  formulations.
+- **Tracker:** Unscented Kalman Filter.
+- **Differences from us:** same as Ott 2022 (RL not BO, UKF not JPDA,
+  no swarm).
+- **Threat level:** **ORANGE**. They established the framing.
+- **Action:** READ FULL PAPER (paywalled — try institutional access
+  or contact authors). My web triage couldn't get past the abstract.
 
 ### YELLOW — BO for tracker tuning, no context / no transfer
 
@@ -124,21 +143,37 @@ method, YELLOW = adjacent or supporting, GREEN = background/foundational).
   our search did not surface a research paper combining (BO autotuning +
   counter-UAS + radar MTT). Combining these is part of our novelty.
 
-## Novelty call (tentative, 2026-05-15)
+## Novelty call (deep-pass, 2026-05-15)
 
-**GO**, with adjusted positioning.
+**GO**, with **further narrowed positioning** after the deep pass.
 
 Our cut — **contextual Bayesian optimization for online multi-target
-tracker parameter autotuning** — does not appear in the literature based
-on the searches conducted. The closest priors are:
+tracker parameter autotuning** — does not appear in the literature even
+after extensive searches across FUSION 2023/2024/2025, arXiv 2024–2026,
+IEEE TAES, IET Radar Sonar & Nav, defense venues, and GitHub.
 
-1. RL/meta-RL approaches to the *same problem* (Stephan 2022, Ott 2022).
-2. Per-scenario BO for *different trackers* (FUSION 2021 paper, GM-PHD).
+The closest prior art is:
+1. Ott 2022 (meta-RL + 2-D RAI context, UKF). **Reading the full text
+   tightened this to ORANGE-RED.** The "context prior" framing is theirs.
+2. Stephan 2022 (deep RL, UKF). Original; abstract-only access.
+3. FUSION 2021 BO-for-MOT paper (per-scenario offline TPE, GM-PHD,
+   no context).
 
-The honest positioning shifts from "first scene-adaptive tracker tuner"
-to **"first contextual Bayesian optimization approach to scene-adaptive
-tracker autotuning, sample-efficient alternative to RL methods,
-demonstrated on JPDA trackers in counter-UAS swarm scenarios."**
+Honest framing for the paper, after reading Ott 2022:
+
+> "We adapt the *context-prior framework for scene-adaptive tracker
+> parameter tuning* (Ott et al., 2022; Stephan et al., 2022) to a
+> Bayesian optimization setting. Where prior work uses meta-RL +
+> SAC requiring O(10^6) training steps, our contextual GP-UCB
+> achieves comparable cross-scenario generalization from O(10^2)
+> training points. We demonstrate on JPDA trackers in counter-UAS
+> swarm scenarios using the open-source Stone Soup library, the first
+> publicly released implementation in this line of work."
+
+This narrower framing is more honest. It also defines the **must-have
+empirical bar:** a head-to-head sample-efficiency comparison against a
+re-implementation of Ott 2022 (or at least an SB3 PPO baseline aimed at
+the same hyperparameter space).
 
 The shift is *good* for the paper:
 - Clear positioning against named prior work (Stephan 2022 is the
@@ -151,22 +186,28 @@ The shift is *good* for the paper:
 
 ### What this changes in the project plan
 
-1. **RL baseline is critical, not nice-to-have.** Phase 1.4 moves up
-   in priority. Without it, reviewers will ask "why didn't you compare
-   to Stephan 2022?"
-2. **Counter-UAS / swarm framing is real differentiation.** Stephan
-   2022 doesn't focus on this; we should explicitly evaluate on
-   high-target-count low-SNR scenarios.
-3. **OOD failure is honest.** Ott 2022 has OOD detection — we don't,
-   yet, and our v3 result shows the GP fails on extrapolation. This
-   is a planted future-work hook: "extending contextual BO with OOD
+1. **RL baseline is the load-bearing claim.** Phase 1.4 moves up in
+   priority. Sample-efficiency vs Ott 2022's meta-RL is the whole
+   paper. Without a head-to-head we have no story.
+2. **Counter-UAS / swarm framing is real differentiation.** None of
+   the prior work emphasises this; we should explicitly evaluate on
+   high-target-count low-SNR scenarios. JPDA + Stone Soup matches
+   the operational counter-UAS setting better than Ott 2022's UKF +
+   indoor person tracking.
+3. **OOD failure is honest.** Ott 2022 has OOD detection (their key
+   contribution beyond Stephan 2022) — we don't, yet, and our v3
+   result shows the contextual GP fails on extrapolation. This is a
+   planted future-work hook: "extending contextual BO with OOD
    detection a la Ott 2022 is left to future work."
-4. **Title and abstract must explicitly compare to RL.** Suggested
+4. **Title and abstract must explicitly position vs RL.** Suggested
    title: *"Contextual Bayesian Optimization for Sample-Efficient
    Scene-Adaptive Multi-Target Tracker Autotuning."*
 5. **Open-source repository is differentiation.** None of the prior
-   work has shipped code. Our public `anumana` library is a real
+   work shipped code. Our public `anumana` library is a real
    contribution beyond the paper.
+6. **Cite Ott 2022 in introduction, not just related work.** Their
+   context-prior framework is the direct lineage we're building on;
+   honest framing acknowledges this upfront and contrasts the method.
 
 ## Must-reads, in order
 
@@ -189,20 +230,44 @@ The shift is *good* for the paper:
 - "counter-UAS swarm drone tracking algorithm autotuning adaptive parameters 2024 2025 2026"
 - "contextual Gaussian process UAS drone tracking parameter optimization sensor"
 
-## Open issues / what I haven't checked
+## Deep-pass searches completed (2026-05-15)
 
-- **Full FUSION 2023, 2024, 2025 proceedings**, paper-by-paper. Web
-  search surfaces popular papers; conference proceedings can hide
-  closer prior art. Should be done by hand against dblp's FUSION lists.
-- **Defense-specific venues (SPIE, IET Radar Sonar & Nav, AESS)** —
-  some BO/tracker tuning work may sit there and not surface in standard
-  searches.
-- **Industry / classified work** (Anduril, Shield AI, Lockheed
-  publications) — likely exists but hard to find. Probably not papered.
-- **Krause-Ong contextual GP-UCB applied to non-tracking domains** — if
-  another group has applied contextual BO to a closely related sensor
-  parameter problem, it'd weaken our "first" claim within MTT but
-  strengthen the methodological framing.
+- FUSION 2023, 2024, 2025 dblp paper-title lists: **no direct hits.**
+- arXiv 2024–2026 targeted queries (contextual BO / sensor parameter /
+  adaptive tuning / cognitive radar): **no direct hits.**
+- IEEE TAES + IET Radar Sonar & Nav recent issues: **no direct hits.**
+- Stone Soup itself (sensor managers, BO-related modules): **no
+  BO-tuned tracker functionality.**
+- GitHub code search ("Stone Soup Bayesian optimization tuning
+  tracker"): **no equivalent open-source library.**
+- Adjacent: cognitive radar BO, sensor management BO, GP-as-motion-
+  model (GaPP-Class 2025): all **GREEN** — different problems.
+- Forward-citation pull of Stephan 2022 / Ott 2022 via Semantic
+  Scholar: API restricted; manual web search of follow-up titles
+  surfaced no Bayesian-optimization variants in this lineage.
+- Ott 2022 full text **read end-to-end** (PDF saved locally). The
+  context-prior + cross-scenario tracking framing belongs to them.
+
+## Residual open issues (~10–15% prior-art risk)
+
+- **Stephan 2022 full text** still paywalled; user should access via
+  institution. The abstract + Ott's citation make the method clear,
+  but I haven't seen the exact reward formulation, parameter list, or
+  scenarios in detail.
+- **SPIE Defense + Commercial Sensing proceedings** (annual conference,
+  many short defense-applied papers) not paper-by-paper combed.
+- **IEEE Radar Conference 2024 / 2025 proceedings** not combed.
+- **Chinese / European defense venues** (Journal of Radars, Chinese
+  Journal of Aeronautics, Defence Technology, etc.) not searched.
+- **Industry / classified work** (Anduril, Shield AI, Lockheed,
+  DRDO LRDE) — likely exists internally but unlikely to be in public
+  literature. Not a publication threat, but means our library may be
+  less novel than it looks to people who've seen internal versions.
+- **Krause-Ong contextual GP-UCB applied to other sensor-parameter
+  problems** — if another group has applied contextual BO to a closely
+  related problem (sensor scheduling, waveform design), it'd weaken
+  our "novel application" claim. Quick check found nothing definitive
+  but the search wasn't exhaustive.
 
 ## Status legend (used elsewhere)
 - `[ ]` unread
