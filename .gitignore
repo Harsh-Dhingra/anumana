@@ -47,12 +47,16 @@ wandb/
 
 # Experiment artifacts
 data/
-results/
 checkpoints/
 *.pkl
 *.pt
 *.h5
 *.npz
+
+# Archived experiment results (small CSVs + plots) are intentionally tracked.
+# Large raw artifacts and intermediate sweeps stay under outputs/.
+results/_raw/
+results/_tmp/
 
 # Logs
 *.log
