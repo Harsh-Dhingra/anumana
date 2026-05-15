@@ -129,3 +129,75 @@ generalises across the scenario space, so the result isn't anecdotal.
 - Compute fix: add `joblib` parallel cell execution to `run_grid` so the
   full sweep is feasible.
 - Begin lit review while phase 1.2 develops (Frazier BO tutorial first).
+
+---
+
+## 2026-05-15 (afternoon) — Phase 1.2 contextual BO first results
+
+**Goal:** demonstrate that one-shot context-conditioned parameter proposals
+can match or beat vanilla BO with a full trial budget on held-out scenarios.
+This is the paper's actual contribution.
+
+**Did:**
+- Implemented `anumana.optimizers.ContextualBayesOpt`: SingleTaskGP over the
+  joint (theta, c) space, BoTorch `FixedFeatureAcquisitionFunction` to fix
+  context at inference, internal context standardisation.
+- Patched `GridResult` to save per-trial parameter vectors (`trial_xs`)
+  so the contextual GP can train on every BO trial, not just the
+  per-cell best.
+- Wrote `scripts/run_contextual_bo.py`: collects a training pool from
+  vanilla BO across multiple cells, fits the contextual GP, evaluates
+  one-shot proposals on held-out cells against four baselines (vanilla BO
+  full budget, random search full budget, default parameters, contextual
+  exploit / explore).
+- Wrote `tests/test_contextual_bo.py` (3 tests, all pass).
+
+**Results:**
+- **v1 (UCB acquisition):** contextual one-shot was +6.9% vs default,
+  -41% vs vanilla BO (8 trials). Bad: UCB explores, but for one-shot
+  there's no follow-up trial to exploit the exploration.
+- **v2 (PosteriorMean acquisition):** contextual one-shot is +42.6% vs
+  default, +4.1% vs vanilla BO (8 trials). One-shot matches or beats
+  the full-budget vanilla BO on every held-out (cell, seed) pair.
+
+Headline table (mean +/- std, 4 held-out points):
+
+| method                  | score          |
+|-------------------------|----------------|
+| **contextual one-shot** | **59.04 ± 8.86** |
+| vanilla BO (8 trials)   | 61.56 ± 9.58   |
+| random search (8)       | 72.86 ± 5.35   |
+| default parameters      | 102.85 ± 17.70 |
+
+Archived to [results/contextual_bo/](../results/contextual_bo/).
+
+**Surprises:**
+- Acquisition-function choice mattered far more than expected. UCB's
+  exploration bonus is harmful in a one-shot setting. This is obvious in
+  retrospect (no future trial to exploit), but it's the kind of detail
+  that kills a result silently if you copy a vanilla BO setup.
+- **Stone Soup isn't fully seeded.** Process noise and clutter generation
+  use Stone Soup's internal RNG, which isn't tied to `seed`. Two runs of
+  the same `SwarmScenarioConfig(seed=k)` produce slightly different
+  scenarios. Within-run comparison is fair; cross-run reproducibility is
+  approximate. Filed as a follow-up.
+- Interior interpolation (training surrounded the test cell on all three
+  axes) gave the strongest contextual win (-15% on seed 0, exact tie on
+  seed 1). Extrapolation cell (clutter outside training support) still
+  matched vanilla BO. The GP generalises better than I expected.
+
+**Caveats / things to fix:**
+- N=4 held-out evaluation points is statistically thin. Need 4-6 held-out
+  cells × 3-5 seeds for paper-quality CIs.
+- Pool size 96 is small for 6-D GP input. The expanded-training option
+  (`--expanded-train`, 12 cells × 3 seeds = ~300 points) is teed up.
+- Need to ablate: pool size, kernel choice, beta when UCB is used in
+  online (not one-shot) mode.
+
+**Next:**
+- Either (a) expand the contextual-BO eval (more cells, more seeds) to
+  firm up the headline result, OR (b) move to phase 1.3 (IMM model
+  weights in the search space). Decision pending.
+- Begin lit review in parallel (Frazier BO tutorial, Krause-Ong contextual
+  BO, Stone Soup paper).
+- Fix Stone Soup seeding for reproducibility.

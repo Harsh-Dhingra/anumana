@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import csv
 import itertools
+import json
 import time
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -42,6 +43,7 @@ class GridResult:
     best_iteration: int
     runtime_s: float
     history: list[float] = field(default_factory=list)
+    trial_xs: list[list[float]] = field(default_factory=list)
     scene_features: dict = field(default_factory=dict)
 
     def to_row(self) -> dict:
@@ -54,7 +56,8 @@ class GridResult:
                 "best_score": self.best_score,
                 "best_iteration": self.best_iteration,
                 "runtime_s": self.runtime_s,
-                "history": str(self.history),
+                "history": json.dumps(list(self.history)),
+                "trial_xs": json.dumps(self.trial_xs),
             }
         )
         d.update({f"feat_{k}": v for k, v in self.scene_features.items()})
@@ -110,6 +113,7 @@ def run_cell(
             best_iteration=tuning.best_iteration,
             runtime_s=runtime,
             history=[t.score for t in tuning.trials],
+            trial_xs=[list(map(float, np.asarray(t.x).flatten())) for t in tuning.trials],
             scene_features=feat_dict,
         )
         rows.append(result)
