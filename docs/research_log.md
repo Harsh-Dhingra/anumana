@@ -489,3 +489,50 @@ Paper becomes "honest benchmark + warm-start hybrid":
   (does warm-started BO reach vanilla-BO-8 quality in ≤4 trials?).
 - Week 2: joblib parallelism + full grid.
 - Week 3: write. Week 4: arXiv + workshop.
+
+---
+
+## 2026-05-17 — Week 1 warm-start gate: FAILED (pre-registered)
+
+**Goal:** test whether the contextual GP is a weak one-shot predictor
+but a strong BO initializer (the hypothesis the PPO negative result
+motivated).
+
+**Did:**
+- Implemented `anumana.optimizers.WarmStartBayesOpt` (+ 3 tests).
+- Ran the gate: 240-rollout contextual pool, 4 held-out cells × 3
+  seeds, vanilla BO vs warm-start BO 8 trials each.
+
+**Result — mean best-so-far across held-out:**
+
+| trial | vanilla | warm-start |
+|-------|---------|------------|
+| 1     | 93.24   | 72.94      |
+| 4     | 70.43   | 64.76      |
+| 8     | 61.53   | 61.18      |
+
+**GATE: FAIL.** Warm-start reaches vanilla-BO-8 converged quality only
+at trial 8, not ≤4.
+
+**Honest read:** warm-start Pareto-dominates vanilla on the mean at
+every trial count, but the gap collapses to ~0 by trial 8 (no
+improvement to the converged answer, just ~1–2 trials faster in the
+regime that matters), is driven by good-prior cells, hurts on the
+clutter-extrapolation cell (v3 failure mode again), and is not
+significant at n=12 / σ≈20.
+
+**Surprises:** the strict gate hid a real-but-modest Pareto effect.
+Resisted the temptation to re-frame around it — that's the same
+overclaiming trap as the contextual-BO story. Honored the gate.
+
+**Decision:** Strategy FAIL branch. Two failed primary hypotheses now.
+Technical-novelty well is dry. Paper = **pure honest-benchmark +
+negative-results study**; warm-start reported as a caveated documented
+attempt, not the headline. No more method swings. Execute the
+benchmark paper. Archived `results/warm_start/`.
+
+**Next:**
+- Week 2: joblib parallel cell execution in `run_grid` (now justified —
+  benchmark credibility needs full grid coverage), then the full grid
+  with all 5 optimizers + proper seeds + bootstrap CIs.
+- Week 3: write the benchmark paper (NeurIPS ICBINB / ICML AutoML).

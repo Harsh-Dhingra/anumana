@@ -88,7 +88,33 @@ positioning.
 ## Status
 
 - [x] Strategy accepted (2026-05-16)
-- [ ] Week 1: `WarmStartBayesOpt` + gate experiment
-- [ ] Week 2: joblib parallelism + full grid
-- [ ] Week 3: paper draft
+- [x] Week 1: `WarmStartBayesOpt` + gate experiment — **GATE FAILED**
+      (2026-05-17). Warm-start Pareto-dominates vanilla on the mean but
+      only reaches vanilla-BO-8 converged quality at trial 8, not ≤4;
+      effect collapses at convergence, driven by good-prior cells, not
+      significant at n=12. Per the FAIL branch below, the paper is now
+      a **pure honest-benchmark + negative-results study**. Warm-start
+      is reported as a caveated documented attempt, not the headline.
+- [ ] Week 2: joblib parallelism + full grid (benchmark core)
+- [ ] Week 3: paper draft (honest-benchmark framing, NeurIPS ICBINB /
+      ICML AutoML)
 - [ ] Week 4: arXiv + submission
+
+## Post-gate decision (2026-05-17)
+
+Two failed primary hypotheses (contextual-BO-wins; warm-start gate).
+The technical-novelty well is dry. The deliverable is the **open
+reproducible benchmark + honest findings**, not a method contribution.
+No further method swings — execute the benchmark paper:
+
+1. **Negative findings (the substance):** one-shot context-conditioned
+   tuning ≈ random search; warm-start accelerates BO early but doesn't
+   improve the converged answer and fails on clutter extrapolation;
+   all learned methods statistically indistinguishable; all beat
+   default ~25%.
+2. **The artifact:** `anumana`, first open reproducible testbed for
+   scene-adaptive MTT tracker autotuning, with 5 optimizers
+   (random, vanilla BO, contextual BO, warm-start BO, PPO) on a
+   parameterised counter-UAS swarm scenario grid.
+3. **The honest contribution to the field:** a rigorous comparison
+   nobody has published, plus the tooling to extend it.
