@@ -14,7 +14,10 @@ try:
     from anumana.optimizers.ppo_tuner import (
         PPOTunerConfig,
         TrackerTuningEnv,
+        cached_paths_exist,
+        load_ppo,
         ppo_propose,
+        save_ppo,
         train_ppo,
     )
 
@@ -36,4 +39,12 @@ __all__ = [
     "params_from_unit_cube",
 ]
 if _HAS_PPO:
-    __all__ += ["PPOTunerConfig", "TrackerTuningEnv", "ppo_propose", "train_ppo"]
+    __all__ += [
+        "PPOTunerConfig",
+        "TrackerTuningEnv",
+        "cached_paths_exist",
+        "load_ppo",
+        "ppo_propose",
+        "save_ppo",
+        "train_ppo",
+    ]

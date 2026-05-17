@@ -181,3 +181,44 @@ def ppo_propose(
     norm_obs = vec_env.normalize_obs(obs)
     action, _ = model.predict(norm_obs, deterministic=deterministic)
     return np.clip(action[0], 0.0, 1.0)
+
+
+def save_ppo(model: PPO, vec_env: VecNormalize, path_dir) -> None:
+    """Persist a trained PPO policy + its observation-normalisation stats."""
+    from pathlib import Path
+
+    d = Path(path_dir)
+    d.mkdir(parents=True, exist_ok=True)
+    model.save(str(d / "ppo_model"))
+    vec_env.save(str(d / "vecnormalize.pkl"))
+
+
+def load_ppo(
+    path_dir,
+    train_cells: Sequence[GridCell],
+    train_seeds: Sequence[int],
+    space: Sequence[ParamSpec] | None = None,
+) -> tuple[PPO, VecNormalize]:
+    """Reload a cached PPO policy + VecNormalize stats for inference.
+
+    VecNormalize.load needs a venv to wrap; we give it a 1-env dummy that
+    is never stepped (we only call normalize_obs for one-shot proposals).
+    """
+    from pathlib import Path
+
+    d = Path(path_dir)
+    dummy = DummyVecEnv(
+        [_make_env(list(train_cells), list(train_seeds), space, seed=0)]
+    )
+    vec_env = VecNormalize.load(str(d / "vecnormalize.pkl"), dummy)
+    vec_env.training = False
+    vec_env.norm_reward = False
+    model = PPO.load(str(d / "ppo_model"))
+    return model, vec_env
+
+
+def cached_paths_exist(path_dir) -> bool:
+    from pathlib import Path
+
+    d = Path(path_dir)
+    return (d / "ppo_model.zip").exists() and (d / "vecnormalize.pkl").exists()
