@@ -9,6 +9,22 @@ from anumana.optimizers.search_space import (
     params_from_unit_cube,
 )
 
+try:
+    from anumana.optimizers.ppo_tuner import (
+        PPOTunerConfig,
+        TrackerTuningEnv,
+        ppo_propose,
+        train_ppo,
+    )
+
+    _HAS_PPO = True
+except Exception:  # stable_baselines3 + gymnasium are an optional [rl] extra
+    _HAS_PPO = False
+    import traceback
+
+    _PPO_IMPORT_TB = traceback.format_exc()
+
+
 __all__ = [
     "BayesOpt",
     "ContextualBayesOpt",
@@ -17,3 +33,5 @@ __all__ = [
     "RandomSearch",
     "params_from_unit_cube",
 ]
+if _HAS_PPO:
+    __all__ += ["PPOTunerConfig", "TrackerTuningEnv", "ppo_propose", "train_ppo"]

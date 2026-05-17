@@ -18,10 +18,12 @@ from typing import Callable, Iterable
 
 import numpy as np
 
-from anumana import AutoTuner
 from anumana.context import extract_scene_features
-from anumana.optimizers import BayesOpt, RandomSearch
 from anumana.scenarios import SwarmScenario, SwarmScenarioConfig
+
+# `AutoTuner` and the optimizer classes are imported lazily inside the
+# functions below to avoid a circular import (anumana.optimizers.ppo_tuner
+# wants to import GridCell from here at module load time).
 
 
 @dataclass(frozen=True)
@@ -65,6 +67,9 @@ class GridResult:
 
 
 def _build_optimizer(name: str, seed: int):
+    # Local imports to break the circular dependency with ppo_tuner.
+    from anumana.optimizers import BayesOpt, RandomSearch
+
     if name == "random_search":
         return RandomSearch(seed=seed)
     if name == "bayes_opt":
@@ -96,6 +101,8 @@ def run_cell(
         "measurement_rate": features.measurement_rate,
         "dispersion": features.measurement_dispersion,
     }
+
+    from anumana import AutoTuner
 
     rows: list[GridResult] = []
     for opt_name in optimizers:
