@@ -8,6 +8,7 @@ from anumana.optimizers.search_space import (
     ParamSpec,
     params_from_unit_cube,
 )
+from anumana.optimizers.warm_start_bo import WarmStartBayesOpt
 
 try:
     from anumana.optimizers.ppo_tuner import (
@@ -31,6 +32,7 @@ __all__ = [
     "DEFAULT_SEARCH_SPACE",
     "ParamSpec",
     "RandomSearch",
+    "WarmStartBayesOpt",
     "params_from_unit_cube",
 ]
 if _HAS_PPO:
