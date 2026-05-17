@@ -129,6 +129,17 @@ def run_cell(
     return rows
 
 
+def _write_csv(rows: list[GridResult], csv_path: Path) -> None:
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    with csv_path.open("w", newline="") as f:
+        if not rows:
+            return
+        writer = csv.DictWriter(f, fieldnames=list(rows[0].to_row().keys()))
+        writer.writeheader()
+        for r in rows:
+            writer.writerow(r.to_row())
+
+
 def run_grid(
     cells: Iterable[GridCell],
     seeds: Iterable[int],
@@ -137,58 +148,87 @@ def run_grid(
     optimizers: Iterable[str] = ("random_search", "bayes_opt"),
     csv_path: str | Path | None = None,
     verbose: bool = True,
+    n_jobs: int = 1,
 ) -> list[GridResult]:
     """Run the cartesian product cells x seeds, return all results.
 
-    If `csv_path` is given, rows are appended as they complete (so partial
-    progress is preserved on crash / kill).
+    `n_jobs=1` (default): serial, streams rows to `csv_path` as they
+    complete (crash-resilient). `n_jobs!=1`: parallelise (cell, seed)
+    tasks with joblib (loky); CSV is written once at the end (no
+    streaming, since workers are separate processes).
     """
     cells = list(cells)
     seeds = list(seeds)
-    total = len(cells) * len(seeds) * len(list(optimizers))
     optimizers = list(optimizers)
-
+    total = len(cells) * len(seeds) * len(optimizers)
     csv_path = Path(csv_path) if csv_path else None
-    csv_file = None
-    csv_writer = None
+
+    tasks = list(itertools.product(cells, seeds))
+
+    if n_jobs == 1:
+        csv_file = None
+        csv_writer = None
+        if csv_path is not None:
+            csv_path.parent.mkdir(parents=True, exist_ok=True)
+            csv_file = csv_path.open("w", newline="")
+        all_results: list[GridResult] = []
+        done = 0
+
+        def _on_progress(r: GridResult) -> None:
+            nonlocal done, csv_writer
+            done += 1
+            if csv_writer is None and csv_file is not None:
+                csv_writer = csv.DictWriter(
+                    csv_file, fieldnames=list(r.to_row().keys())
+                )
+                csv_writer.writeheader()
+            if csv_writer is not None:
+                csv_writer.writerow(r.to_row())
+                csv_file.flush()
+            if verbose:
+                print(
+                    f"  [{done:3d}/{total}] {r.optimizer:<13s} "
+                    f"N={r.cell.num_targets:3d} clut={r.cell.clutter_rate:4.1f} "
+                    f"man={r.cell.maneuver_intensity:4.2f} seed={r.seed} "
+                    f"best={r.best_score:7.2f} ({r.runtime_s:5.1f}s)"
+                )
+
+        try:
+            for cell, seed in tasks:
+                all_results.extend(
+                    run_cell(
+                        cell,
+                        seed=seed,
+                        num_trials=num_trials,
+                        optimizers=optimizers,
+                        on_progress=_on_progress,
+                    )
+                )
+        finally:
+            if csv_file is not None:
+                csv_file.close()
+        return all_results
+
+    # Parallel path.
+    from joblib import Parallel, delayed
+
+    if verbose:
+        print(f"  parallel grid: {len(tasks)} (cell,seed) tasks, "
+              f"n_jobs={n_jobs}, {total} total runs")
+
+    nested = Parallel(n_jobs=n_jobs, verbose=10 if verbose else 0)(
+        delayed(run_cell)(
+            cell,
+            seed=seed,
+            num_trials=num_trials,
+            optimizers=optimizers,
+            on_progress=None,
+        )
+        for cell, seed in tasks
+    )
+    all_results = [r for rows in nested for r in rows]
     if csv_path is not None:
-        csv_path.parent.mkdir(parents=True, exist_ok=True)
-        csv_file = csv_path.open("w", newline="")
-
-    all_results: list[GridResult] = []
-    done = 0
-
-    def _on_progress(r: GridResult) -> None:
-        nonlocal done, csv_writer
-        done += 1
-        if csv_writer is None and csv_file is not None:
-            csv_writer = csv.DictWriter(csv_file, fieldnames=list(r.to_row().keys()))
-            csv_writer.writeheader()
-        if csv_writer is not None:
-            csv_writer.writerow(r.to_row())
-            csv_file.flush()
-        if verbose:
-            print(
-                f"  [{done:3d}/{total}] {r.optimizer:<13s} "
-                f"N={r.cell.num_targets:3d} clut={r.cell.clutter_rate:4.1f} "
-                f"man={r.cell.maneuver_intensity:4.2f} seed={r.seed} "
-                f"best={r.best_score:7.2f} ({r.runtime_s:5.1f}s)"
-            )
-
-    try:
-        for cell, seed in itertools.product(cells, seeds):
-            rows = run_cell(
-                cell,
-                seed=seed,
-                num_trials=num_trials,
-                optimizers=optimizers,
-                on_progress=_on_progress,
-            )
-            all_results.extend(rows)
-    finally:
-        if csv_file is not None:
-            csv_file.close()
-
+        _write_csv(all_results, csv_path)
     return all_results
 
 
