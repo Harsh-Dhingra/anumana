@@ -439,3 +439,53 @@ tracker tuner"):
 - Phase 1.5 follow-ups (deferred): SPIE Defense + Commercial Sensing
   proceedings, IEEE Radar Conference 2024/2025, Chinese radar venues.
   ~10-15% residual prior-art risk.
+
+---
+
+## 2026-05-16 — Phase 1.4 PPO baseline: negative result + strategy pivot
+
+**Goal:** the load-bearing sample-efficiency comparison — contextual BO
+vs PPO on the same task — to back the paper's headline.
+
+**Did:**
+- Built `anumana.optimizers.ppo_tuner` (single-step contextual-bandit
+  gym env + SB3 PPO + VecNormalize). Fixed a circular import
+  (`grid.py` → `AutoTuner`).
+- Ran the full head-to-head: 20k PPO rollouts (4 envs) vs a 240-rollout
+  contextual-BO pool, both evaluated one-shot on the v3 held-out set
+  (4 cells × 3 seeds = 12 points). PPO train: 4300 s.
+
+**Results (mean ± std, n=12):**
+- Vanilla BO (8 trials): **61.53 ± 20.31** (best)
+- PPO one-shot: 63.72 ± 17.40 (20k rollouts)
+- Contextual BO one-shot: 69.36 ± 20.89 (240 rollouts)
+- Random search (8): 70.12 ± 18.66
+- Default: 90.87 ± 18.60
+
+**The intended headline is dead.** Contextual BO one-shot is 8.9% worse
+than PPO despite 83× fewer rollouts; ≈ random-search-8; beaten by
+vanilla-BO-8. With n=12, σ≈20 none of the learned-method differences
+are significant — honest read: all tuning methods indistinguishable,
+all beat default by ~25%. Archived to `results/ppo_vs_bo/`.
+
+**Surprises:**
+- Even an under-trained PPO (20k vs Ott's 4M steps) beat contextual BO
+  one-shot. A better-trained PPO would only widen the gap. The "BO is
+  more sample-efficient than RL" narrative cannot be defended on this
+  data.
+- Contextual BO loses worst exactly where v3 predicted (clutter
+  extrapolation, N=10/clut=8). Consistent failure mode, not noise.
+
+**Decision: strategy pivot (see `docs/strategy.md`).**
+Paper becomes "honest benchmark + warm-start hybrid":
+1. Negative finding reported straight (de-risks novelty critique).
+2. Positive contribution = warm-start BO (contextual prior as a BO
+   initializer, not a one-shot predictor) — the hypothesis this
+   negative result directly motivates.
+3. Durable artifact = `anumana`, first open testbed in this niche.
+
+**Next:**
+- Week 1: implement `WarmStartBayesOpt`, gate experiment
+  (does warm-started BO reach vanilla-BO-8 quality in ≤4 trials?).
+- Week 2: joblib parallelism + full grid.
+- Week 3: write. Week 4: arXiv + workshop.

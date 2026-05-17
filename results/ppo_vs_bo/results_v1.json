@@ -1,0 +1,370 @@
+{
+  "config": {
+    "ppo_steps": 20000,
+    "ppo_envs": 4,
+    "bo_pool_trials": 8,
+    "bo_pool_rollouts": 240,
+    "train_seeds": [
+      0,
+      1,
+      2
+    ],
+    "eval_seeds": [
+      0,
+      1,
+      2
+    ],
+    "ppo_train_time_s": 4299.85780787468,
+    "bo_pool_time_s": 197.5836799144745
+  },
+  "rows": [
+    {
+      "num_targets": 7,
+      "duration_steps": 20,
+      "clutter_rate": 2.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 0,
+      "contextual_bo_one_shot": 72.91944944951075,
+      "ppo_one_shot": 72.91695582280848,
+      "vanilla_bo_full_budget": 72.91944944951075,
+      "random_search_full_budget": 77.2914222050249,
+      "default_params": 77.8977112284445,
+      "context_vec": [
+        3.32e-07,
+        8.3,
+        1234.3005280388543,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        0.7951441407203674,
+        0.0
+      ],
+      "ctx_proposal": [
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "num_targets": 7,
+      "duration_steps": 20,
+      "clutter_rate": 2.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 1,
+      "contextual_bo_one_shot": 50.5993987711707,
+      "ppo_one_shot": 50.59109840942764,
+      "vanilla_bo_full_budget": 45.92002627103621,
+      "random_search_full_budget": 52.889713381323304,
+      "default_params": 58.670472235638016,
+      "context_vec": [
+        3.36e-07,
+        8.4,
+        1225.2119424397554,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        0.787595272064209,
+        0.0
+      ],
+      "ctx_proposal": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "num_targets": 7,
+      "duration_steps": 20,
+      "clutter_rate": 2.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 2,
+      "contextual_bo_one_shot": 83.58205116325964,
+      "ppo_one_shot": 68.19142517162577,
+      "vanilla_bo_full_budget": 68.19076658808908,
+      "random_search_full_budget": 73.43252248960597,
+      "default_params": 74.55649930169892,
+      "context_vec": [
+        3.48e-07,
+        8.7,
+        1341.0100880426785,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        0.9753556251525879,
+        0.07875294983386993
+      ],
+      "ctx_proposal": [
+        0.6255914790810004,
+        1.0,
+        0.5260570655732588
+      ]
+    },
+    {
+      "num_targets": 9,
+      "duration_steps": 20,
+      "clutter_rate": 4.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 0,
+      "contextual_bo_one_shot": 91.015428082463,
+      "ppo_one_shot": 85.91265412684395,
+      "vanilla_bo_full_budget": 74.45080962031003,
+      "random_search_full_budget": 83.6994603210417,
+      "default_params": 84.36732944599514,
+      "context_vec": [
+        4.78e-07,
+        11.95,
+        1307.4250881913265,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        1.0,
+        0.04075096547603607
+      ],
+      "ctx_proposal": [
+        0.3782499783696945,
+        1.0,
+        0.14163014058121107
+      ]
+    },
+    {
+      "num_targets": 9,
+      "duration_steps": 20,
+      "clutter_rate": 4.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 1,
+      "contextual_bo_one_shot": 95.2151827086334,
+      "ppo_one_shot": 83.42701270340193,
+      "vanilla_bo_full_budget": 88.79910564524107,
+      "random_search_full_budget": 88.80163631542634,
+      "default_params": 88.80284252545728,
+      "context_vec": [
+        4.2799999999999997e-07,
+        10.7,
+        1272.6270311945725,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "ctx_proposal": [
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "num_targets": 9,
+      "duration_steps": 20,
+      "clutter_rate": 4.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 2,
+      "contextual_bo_one_shot": 56.09881725648637,
+      "ppo_one_shot": 56.08198913986614,
+      "vanilla_bo_full_budget": 56.08198913986614,
+      "random_search_full_budget": 82.67464389954137,
+      "default_params": 100.65625940717942,
+      "context_vec": [
+        5.04e-07,
+        12.6,
+        1443.9583978579544,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        1.0,
+        0.2848837971687317
+      ],
+      "ctx_proposal": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "num_targets": 10,
+      "duration_steps": 20,
+      "clutter_rate": 8.0,
+      "maneuver_intensity": 0.5,
+      "detection_probability": 0.9,
+      "seed": 0,
+      "contextual_bo_one_shot": 75.03632734121044,
+      "ppo_one_shot": 60.3813766324263,
+      "vanilla_bo_full_budget": 59.71062323275335,
+      "random_search_full_budget": 59.71062323275335,
+      "default_params": 135.76563970016056,
+      "context_vec": [
+        6.440000000000001e-07,
+        16.1,
+        1357.3807920227614,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        1.0,
+        0.10392655432224274
+      ],
+      "ctx_proposal": [
+        0.047838928177952766,
+        0.8825850216671824,
+        0.19562514685094357
+      ]
+    },
+    {
+      "num_targets": 10,
+      "duration_steps": 20,
+      "clutter_rate": 8.0,
+      "maneuver_intensity": 0.5,
+      "detection_probability": 0.9,
+      "seed": 1,
+      "contextual_bo_one_shot": 101.03833022264583,
+      "ppo_one_shot": 90.2106981988009,
+      "vanilla_bo_full_budget": 74.08009250830584,
+      "random_search_full_budget": 74.08009250830584,
+      "default_params": 108.42945122503474,
+      "context_vec": [
+        6.76e-07,
+        16.9,
+        1419.6051433760113,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        1.0,
+        0.1853014975786209
+      ],
+      "ctx_proposal": [
+        0.022327983751893044,
+        0.3584322240203619,
+        0.9958179267123342
+      ]
+    },
+    {
+      "num_targets": 10,
+      "duration_steps": 20,
+      "clutter_rate": 8.0,
+      "maneuver_intensity": 0.5,
+      "detection_probability": 0.9,
+      "seed": 2,
+      "contextual_bo_one_shot": 69.97813640758164,
+      "ppo_one_shot": 62.86243235347733,
+      "vanilla_bo_full_budget": 59.991969580466126,
+      "random_search_full_budget": 59.99196958046612,
+      "default_params": 87.41588257127255,
+      "context_vec": [
+        6.6e-07,
+        16.5,
+        1450.7161342238971,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        1.0,
+        0.23351658880710602
+      ],
+      "ctx_proposal": [
+        0.18173595052212477,
+        0.9936466263607144,
+        0.29450162779539824
+      ]
+    },
+    {
+      "num_targets": 8,
+      "duration_steps": 20,
+      "clutter_rate": 3.0,
+      "maneuver_intensity": 1.0,
+      "detection_probability": 0.9,
+      "seed": 0,
+      "contextual_bo_one_shot": 25.104262582460173,
+      "ppo_one_shot": 24.96428180967916,
+      "vanilla_bo_full_budget": 11.289030495068944,
+      "random_search_full_budget": 21.763623849341943,
+      "default_params": 80.29294315815022,
+      "context_vec": [
+        4.02e-07,
+        10.05,
+        1237.025303297156,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        0.9109795093536377,
+        0.0
+      ],
+      "ctx_proposal": [
+        0.0,
+        0.4246463779935529,
+        0.28285421362428254
+      ]
+    },
+    {
+      "num_targets": 8,
+      "duration_steps": 20,
+      "clutter_rate": 3.0,
+      "maneuver_intensity": 1.0,
+      "detection_probability": 0.9,
+      "seed": 1,
+      "contextual_bo_one_shot": 55.48465540748087,
+      "ppo_one_shot": 50.46797351877085,
+      "vanilla_bo_full_budget": 42.25239684460105,
+      "random_search_full_budget": 73.53065273116101,
+      "default_params": 99.99316157041685,
+      "context_vec": [
+        3.5799999999999995e-07,
+        8.95,
+        1148.412019214521,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        0.6989082098007202,
+        0.0
+      ],
+      "ctx_proposal": [
+        0.0,
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "num_targets": 8,
+      "duration_steps": 20,
+      "clutter_rate": 3.0,
+      "maneuver_intensity": 1.0,
+      "detection_probability": 0.9,
+      "seed": 2,
+      "contextual_bo_one_shot": 56.291315146068996,
+      "ppo_one_shot": 58.66229951024793,
+      "vanilla_bo_full_budget": 84.65293968624056,
+      "random_search_full_budget": 93.58511464460668,
+      "default_params": 93.58424177691832,
+      "context_vec": [
+        4.2200000000000005e-07,
+        10.55,
+        1350.6084557643117,
+        5000.0
+      ],
+      "ppo_proposal": [
+        0.0,
+        1.0,
+        0.12536616623401642
+      ],
+      "ctx_proposal": [
+        0.0,
+        0.0,
+        0.1574302890466907
+      ]
+    }
+  ]
+}
