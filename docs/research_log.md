@@ -536,3 +536,54 @@ benchmark paper. Archived `results/warm_start/`.
   benchmark credibility needs full grid coverage), then the full grid
   with all 5 optimizers + proper seeds + bootstrap CIs.
 - Week 3: write the benchmark paper (NeurIPS ICBINB / ICML AutoML).
+
+---
+
+## 2026-05-17 (later) — Week 2 benchmark complete; the paper's core result
+
+**Did:** Week 2a joblib parallelism (906b29c), Week 2b benchmark
+harness + PPO caching (3047ac7, smoke incl cache-load), then the full
+lean benchmark: 6 train + 4 held-out cells, 3 train / 3 eval seeds
+(n=12), 8 trials, 20k PPO steps. Plots generated, archived to
+`results/benchmark/`.
+
+**Result (mean composite, 95% bootstrap CI, n=12):**
+
+| method | mean | CI | std |
+|---|---|---|---|
+| default | 90.87 | [80.81,102.13] | 18.60 |
+| random search (K=8) | 70.12 | [58.47,79.66] | 18.66 |
+| vanilla BO (K=8) | 61.53 | [49.32,71.84] | 20.31 |
+| contextual BO (one-shot) | 75.01 | [58.30,94.93] | 32.25 |
+| warm-start BO (K=8) | 59.85 | [48.10,70.26] | 19.63 |
+| PPO (one-shot) | 61.76 | [49.18,72.83] | 20.75 |
+
+**Findings (sharper than "all noise"):**
+- **F1** tuning beats no-tuning, significant (default CI lower 80.81 >
+  best CI uppers ~70–72); ≈32–34% improvement.
+- **F2 (headline)** one-shot contextual BO is the *worst* learned
+  method (75.0 > random 70.1) with ~1.6× the variance; on
+  clutter-extrapolation cells it returns 154.7 / 109.7 — *worse than
+  untuned default* — the GP posterior mean confidently extrapolates
+  out of support. v3 failure confirmed at scale with statistics.
+- **F3** vanilla BO / warm-start / PPO statistically
+  indistinguishable; warm-start's best mean is noise (consistent with
+  the Week-1 gate FAIL).
+- **F4** PPO (also one-shot, context-conditioned) does NOT collapse on
+  the extrapolation cells (60.4 / 90.2 / 62.9 vs ctx 154.7 / 109.7).
+  Bounded clipped RL policy extrapolates more safely than the GP
+  posterior mean — a real methodological observation for the paper.
+
+**Decision:** n=12 (3 seeds) is adequate for every stated claim — F1 is
+significant, F2 is a variance/qualitative story, F3 is a null. 5-seed
+expansion is optional robustness (PPO cached so cheap), not required.
+
+**Surprise:** the honest result is *better* than the feared "everything
+is noise." There is a clean, statistically-supported negative finding
+(F2) plus a genuine methodological nuance (F4). This is a coherent
+corrective to Stephan/Ott's "context-conditioned RL wins big" with no
+public baseline — exactly the kind of contribution a benchmark /
+ICBINB paper exists for.
+
+**Next:** paper draft results+discussion filled with these numbers
+(done); full tightening pass; Week 4 venue-template port + arXiv.

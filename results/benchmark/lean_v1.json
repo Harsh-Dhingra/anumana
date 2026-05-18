@@ -1,0 +1,230 @@
+{
+  "config": {
+    "train_cells": 6,
+    "held_out_cells": 4,
+    "train_seeds": [
+      0,
+      1,
+      2
+    ],
+    "eval_seeds": [
+      0,
+      1,
+      2
+    ],
+    "trials": 8,
+    "pool_trials": 8,
+    "pool_rollouts": 144,
+    "ppo_steps": 20000,
+    "ppo_train_time_s": 3948.137943983078,
+    "n_eval_points": 12
+  },
+  "summary": {
+    "default": {
+      "mean": 90.86936951219722,
+      "std": 18.600864535348414,
+      "ci_lo": 80.81351911410425,
+      "ci_hi": 102.12583190983236
+    },
+    "random_search": {
+      "mean": 70.12095626321654,
+      "std": 18.658123696415995,
+      "ci_lo": 58.47051385400507,
+      "ci_hi": 79.66204959557918
+    },
+    "vanilla_bo": {
+      "mean": 61.52826658845743,
+      "std": 20.313420669678145,
+      "ci_lo": 49.316351455611155,
+      "ci_hi": 71.83793835620635
+    },
+    "contextual_bo_oneshot": {
+      "mean": 75.00719499778332,
+      "std": 32.25243279667977,
+      "ci_lo": 58.30306182956778,
+      "ci_hi": 94.9280269027141
+    },
+    "warm_start_bo": {
+      "mean": 59.85136316951222,
+      "std": 19.633237919448618,
+      "ci_lo": 48.10382398187448,
+      "ci_hi": 70.26297119321059
+    },
+    "ppo_oneshot": {
+      "mean": 61.75672017808031,
+      "std": 20.74807307138804,
+      "ci_lo": 49.183243420799315,
+      "ci_hi": 72.82738482193422
+    }
+  },
+  "rows": [
+    {
+      "num_targets": 7,
+      "duration_steps": 20,
+      "clutter_rate": 2.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 0,
+      "default": 77.8977112284445,
+      "random_search": 77.29142220502492,
+      "vanilla_bo": 72.91944944951075,
+      "contextual_bo_oneshot": 72.91944944951075,
+      "warm_start_bo": 66.85695436198188,
+      "ppo_oneshot": 72.91407762436715
+    },
+    {
+      "num_targets": 7,
+      "duration_steps": 20,
+      "clutter_rate": 2.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 1,
+      "default": 58.670472235638016,
+      "random_search": 52.88971338132332,
+      "vanilla_bo": 45.92002627103622,
+      "contextual_bo_oneshot": 50.5993987711707,
+      "warm_start_bo": 48.833119482775956,
+      "ppo_oneshot": 48.855644699469686
+    },
+    {
+      "num_targets": 7,
+      "duration_steps": 20,
+      "clutter_rate": 2.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 2,
+      "default": 74.55649930169892,
+      "random_search": 73.43252248960596,
+      "vanilla_bo": 68.19076658808908,
+      "contextual_bo_oneshot": 68.19746868868883,
+      "warm_start_bo": 68.19076658808908,
+      "ppo_oneshot": 68.19076658808908
+    },
+    {
+      "num_targets": 9,
+      "duration_steps": 20,
+      "clutter_rate": 4.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 0,
+      "default": 84.36732944599514,
+      "random_search": 83.69946032104168,
+      "vanilla_bo": 74.45080962030998,
+      "contextual_bo_oneshot": 85.91265412684395,
+      "warm_start_bo": 74.43894996163955,
+      "ppo_oneshot": 85.91265412684395
+    },
+    {
+      "num_targets": 9,
+      "duration_steps": 20,
+      "clutter_rate": 4.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 1,
+      "default": 88.80284252545728,
+      "random_search": 88.80163631542634,
+      "vanilla_bo": 88.79910564524107,
+      "contextual_bo_oneshot": 98.69008773982387,
+      "warm_start_bo": 83.42701270340193,
+      "ppo_oneshot": 83.42701270340193
+    },
+    {
+      "num_targets": 9,
+      "duration_steps": 20,
+      "clutter_rate": 4.0,
+      "maneuver_intensity": 0.3,
+      "detection_probability": 0.9,
+      "seed": 2,
+      "default": 100.65625940717942,
+      "random_search": 82.67464389954137,
+      "vanilla_bo": 56.08198913986614,
+      "contextual_bo_oneshot": 56.09881725648637,
+      "warm_start_bo": 56.08198913986614,
+      "ppo_oneshot": 56.08198913986614
+    },
+    {
+      "num_targets": 10,
+      "duration_steps": 20,
+      "clutter_rate": 8.0,
+      "maneuver_intensity": 0.5,
+      "detection_probability": 0.9,
+      "seed": 0,
+      "default": 135.76563970016056,
+      "random_search": 59.71062323275335,
+      "vanilla_bo": 59.71062323275335,
+      "contextual_bo_oneshot": 154.70714308072814,
+      "warm_start_bo": 60.3813766324263,
+      "ppo_oneshot": 60.3813766324263
+    },
+    {
+      "num_targets": 10,
+      "duration_steps": 20,
+      "clutter_rate": 8.0,
+      "maneuver_intensity": 0.5,
+      "detection_probability": 0.9,
+      "seed": 1,
+      "default": 108.42945122503474,
+      "random_search": 74.08009250830582,
+      "vanilla_bo": 74.08009250830584,
+      "contextual_bo_oneshot": 109.64824860591976,
+      "warm_start_bo": 90.2106981988009,
+      "ppo_oneshot": 90.2106981988009
+    },
+    {
+      "num_targets": 10,
+      "duration_steps": 20,
+      "clutter_rate": 8.0,
+      "maneuver_intensity": 0.5,
+      "detection_probability": 0.9,
+      "seed": 2,
+      "default": 87.41588257127256,
+      "random_search": 59.99196958046612,
+      "vanilla_bo": 59.991969580466126,
+      "contextual_bo_oneshot": 59.983133720353194,
+      "warm_start_bo": 59.96891369984533,
+      "ppo_oneshot": 62.86243235347733
+    },
+    {
+      "num_targets": 8,
+      "duration_steps": 20,
+      "clutter_rate": 3.0,
+      "maneuver_intensity": 1.0,
+      "detection_probability": 0.9,
+      "seed": 0,
+      "default": 80.29294315815022,
+      "random_search": 21.76362384934191,
+      "vanilla_bo": 11.289030495068953,
+      "contextual_bo_oneshot": 25.11584657315553,
+      "warm_start_bo": 11.28903049506895,
+      "ppo_oneshot": 11.289030495068946
+    },
+    {
+      "num_targets": 8,
+      "duration_steps": 20,
+      "clutter_rate": 3.0,
+      "maneuver_intensity": 1.0,
+      "detection_probability": 0.9,
+      "seed": 1,
+      "default": 99.99316157041685,
+      "random_search": 73.53065273116101,
+      "vanilla_bo": 42.25239684460105,
+      "contextual_bo_oneshot": 55.48465540748087,
+      "warm_start_bo": 42.25239684460105,
+      "ppo_oneshot": 42.292660064904375
+    },
+    {
+      "num_targets": 8,
+      "duration_steps": 20,
+      "clutter_rate": 3.0,
+      "maneuver_intensity": 1.0,
+      "detection_probability": 0.9,
+      "seed": 2,
+      "default": 93.58424177691832,
+      "random_search": 93.58511464460666,
+      "vanilla_bo": 84.65293968624056,
+      "contextual_bo_oneshot": 62.72943655323786,
+      "warm_start_bo": 56.285149925649534,
+      "ppo_oneshot": 58.66229951024793
+    }
+  ]
+}

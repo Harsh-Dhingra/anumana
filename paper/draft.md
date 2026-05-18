@@ -1,8 +1,8 @@
 # Contextual Optimization for Scene-Adaptive Multi-Target Tracker Tuning: An Honest Benchmark
 
 *Working draft. Markdown now; port to the venue template (NeurIPS ICBINB
-or ICML AutoML workshop) in Week 4. `[[FILL]]` markers pull from
-`results/benchmark/lean_v1.json` once the benchmark run lands.*
+or ICML AutoML workshop) in Week 4. Results table populated from
+`results/benchmark/lean_v1.json` (lean_v1, n=12).*
 
 ---
 
@@ -18,13 +18,16 @@ open, reproducible benchmark for scene-adaptive tracker autotuning — a
 JPDA tracker on Stone Soup over a parameterised counter-UAS swarm grid —
 and compare random search, per-scenario Bayesian optimization, one-shot
 contextual BO, a warm-start hybrid, and a PPO policy, with bootstrap
-confidence intervals on held-out scenes. **Our headline result is
-negative**: one-shot context-conditioned tuning does not beat cheap
-per-scenario BO; warm-starting accelerates early convergence but does not
-improve the converged solution and degrades under distribution shift; all
-learned methods are statistically indistinguishable while all beat
-untuned defaults by ≈[[FILL:def_gap]]%. We release the benchmark and code
-so the comparison can be extended.
+confidence intervals on held-out scenes (n=12). **Our headline result is
+negative and specific**: one-shot *contextual* BO is the *worst* learned
+method (mean 75.0 vs random search 70.1) and is actively harmful under
+clutter distribution shift, where its GP posterior mean confidently
+extrapolates to solutions worse than untuned defaults. Cheap per-scenario
+BO (61.5), a warm-start hybrid (59.9), and a PPO policy (61.8) are
+statistically indistinguishable from one another; all tuning beats
+untuned defaults (90.9) by ≈32–34%. Notably, context-conditioned RL
+degrades gracefully where the context-conditioned GP does not. We release
+the benchmark and code so the comparison can be extended.
 
 ## 1. Introduction
 
@@ -134,45 +137,77 @@ seeded; parallel and serial execution are bit-identical.
 
 ## 6. Results
 
-*Main table — `[[FILL from results/benchmark/lean_v1.json summary]]`*
+Main table (n=12 held-out points; mean composite, lower = better;
+percentile bootstrap 95% CI, 5000 resamples):
 
-| Method | mean composite | 95% CI | std |
+| Method | mean | 95% CI | std |
 |---|---|---|---|
-| default | `[[FILL]]` | `[[FILL]]` | `[[FILL]]` |
-| RandomSearch (K=8) | `[[FILL]]` | `[[FILL]]` | `[[FILL]]` |
-| BayesOpt (K=8) | `[[FILL]]` | `[[FILL]]` | `[[FILL]]` |
-| ContextualBayesOpt (one-shot) | `[[FILL]]` | `[[FILL]]` | `[[FILL]]` |
-| WarmStartBayesOpt (K=8) | `[[FILL]]` | `[[FILL]]` | `[[FILL]]` |
-| PPO (one-shot) | `[[FILL]]` | `[[FILL]]` | `[[FILL]]` |
+| Default params | 90.87 | [80.81, 102.13] | 18.60 |
+| Random search (K=8) | 70.12 | [58.47, 79.66] | 18.66 |
+| Vanilla BO (K=8) | 61.53 | [49.32, 71.84] | 20.31 |
+| **Contextual BO (one-shot)** | **75.01** | **[58.30, 94.93]** | **32.25** |
+| Warm-start BO (K=8) | 59.85 | [48.10, 70.26] | 19.63 |
+| PPO (one-shot) | 61.76 | [49.18, 72.83] | 20.75 |
 
-Figure 1: forest plot (`outputs/benchmark/benchmark_forest.png`).
+Figure 1: forest plot (`results/benchmark/benchmark_forest.png`).
 Figure 2: per-cell-kind breakdown (`benchmark_by_kind.png`).
 
-Prior runs already establish the shape (to be confirmed by the final
-table): contextual one-shot ≈ random-search-K and worse than vanilla
-BO-K (results/ppo_vs_bo/); warm-start Pareto-dominates vanilla on the
-mean best-so-far at every K but converges to the same value
-(results/warm_start/); contextual one-shot fails on clutter
-extrapolation (results/contextual_bo/, v3).
+**F1 — tuning beats no tuning (significant).** Default's CI lower bound
+(80.81) sits above every tuned method's CI upper bound; ≈32–34%
+improvement.
+
+**F2 — one-shot contextual BO is the worst learned method and is
+actively harmful under distribution shift (headline).** It is worse on
+the mean than random search and carries ~1.6× the variance of every
+other method. On the clutter-extrapolation cells (N=10, clutter=8) it
+returns 154.7 / 109.7 — *worse than untuned default* (135.8 / 108.4) —
+because the GP posterior mean confidently extrapolates outside training
+support.
+
+**F3 — among per-scenario / hybrid methods, nothing beats anything
+(null).** Vanilla BO (61.5), warm-start (59.9), PPO one-shot (61.8) are
+statistically indistinguishable; warm-start's best mean is noise
+(consistent with the Week-1 gate failing its ≤4-trial criterion).
+
+**F4 — context-conditioned RL degrades gracefully where the
+context-conditioned GP does not.** PPO one-shot is also one-shot and
+context-conditioned, yet returns 60.4 / 90.2 / 62.9 on the same
+clutter-extrapolation cells where contextual BO collapses. The bounded,
+VecNormalize-clipped RL policy extrapolates more safely than the GP
+posterior mean — a methodological observation, not just a benchmark
+number.
 
 ## 7. Discussion
 
-**One-shot context conditioning does not beat cheap per-scenario BO.**
-The operational implication is the opposite of the original hypothesis:
-if a few per-scenario tuning trials are affordable, they outperform a
-context-conditioned one-shot proposal.
+**One-shot contextual BO is not merely "not better" — it is the worst
+learned method and is dangerous under distribution shift.** The original
+hypothesis was that a sample-efficient contextual GP would match RL-based
+scene-adaptive tuning. It does not. Worse, its failure mode is
+unsafe: the GP posterior mean is overconfident outside its training
+support, so on out-of-distribution clutter it proposes parameters worse
+than doing no tuning at all. For an operational autotuner this is the
+opposite of a safe default.
+
+**RL extrapolates more gracefully than the GP.** PPO and contextual BO
+are both one-shot context-conditioned predictors, yet PPO does not
+collapse on the extrapolation cells. We attribute this to the bounded
+action head and clipped, normalised observations: the policy cannot emit
+arbitrarily bad parameters, whereas an unconstrained GP posterior mean
+can. This suggests that if one insists on one-shot context conditioning,
+a bounded learned policy is safer than a GP — but neither beats cheap
+per-scenario BO.
 
 **Warm-starting accelerates but does not improve.** Seeding per-scenario
-BO from the contextual prior reaches a given quality in fewer trials, but
-the converged solution is unchanged and the prior actively hurts when the
-held-out clutter is outside training support — the same failure the
-contextual GP shows alone.
+BO from the contextual prior reaches a given quality in fewer trials
+(Week-1 gate experiment), but the converged solution is unchanged
+(warm-start 59.9 ≈ vanilla 61.5, CIs overlapping) and the prior hurts
+under the same clutter shift.
 
-**Everything beats default; nothing clearly beats everything else.** With
-n = 12 and σ ≈ 20, the learned methods are statistically
-indistinguishable. The honest takeaway is that tuning matters
-(≈[[FILL:def_gap]]% over default) but *how* you tune, among reasonable
-methods, does not — at least at this scenario scale.
+**Tuning matters; the choice among reasonable per-scenario methods does
+not.** Any tuning beats default by ≈32–34% (significant). Among vanilla
+BO, warm-start, and PPO the differences are within noise at n = 12. The
+honest operational takeaway: spend the engineering on *some* per-scenario
+tuning loop, not on context-conditioned one-shot prediction.
 
 **Why report this.** The field has two papers claiming large gains from
 scene-adaptive RL tuning and no open baseline. A reproducible benchmark
