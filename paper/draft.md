@@ -20,14 +20,16 @@ and compare random search, per-scenario Bayesian optimization, one-shot
 contextual BO, a warm-start hybrid, and a PPO policy, with bootstrap
 confidence intervals on held-out scenes (n=12). **Our headline result is
 negative and specific**: one-shot *contextual* BO is the *worst* learned
-method (mean 75.0 vs random search 70.1) and is actively harmful under
-clutter distribution shift, where its GP posterior mean confidently
-extrapolates to solutions worse than untuned defaults. Cheap per-scenario
-BO (61.5), a warm-start hybrid (59.9), and a PPO policy (61.8) are
-statistically indistinguishable from one another; all tuning beats
-untuned defaults (90.9) by ≈32–34%. Notably, context-conditioned RL
-degrades gracefully where the context-conditioned GP does not. We release
-the benchmark and code so the comparison can be extended.
+method on average (mean 75.0 vs random search 70.1) and is unsafe under
+clutter distribution shift — on an out-of-distribution cell its
+unbounded GP posterior mean yields sub-default proposals. Cheap
+per-scenario BO (61.5), a warm-start hybrid (59.9), and a PPO policy
+(61.8) are statistically indistinguishable; all tuning beats untuned
+defaults (90.9) by ≈32–34%. We additionally note — as a conjecture from
+limited data — that a context-conditioned RL policy degrades more
+gracefully than the GP. We release the benchmark and code so the
+comparison can be extended, and we are explicit throughout about which
+claims are significant, which are nulls, and which are conjectures.
 
 ## 1. Introduction
 
@@ -54,11 +56,12 @@ testbed that let us find it:
   open-source Stone Soup framework, five tuning strategies, and a
   metrics + bootstrap-CI evaluation harness. (§3–5)
 - **A negative empirical finding**, stated honestly with statistics:
-  one-shot context-conditioned tuning ≈ per-scenario random search and
-  is beaten by cheap per-scenario BO; a warm-start hybrid accelerates
-  early BO but does not improve the converged answer and fails under
-  clutter distribution shift; all learned methods are within noise of
-  each other. (§6–7)
+  one-shot contextual BO is the *worst* learned method (below per-scenario
+  random search) and is unsafe under clutter shift; a warm-start hybrid
+  accelerates early BO but does not improve the converged answer; cheap
+  per-scenario BO, warm-start, and PPO are mutually indistinguishable.
+  Each finding is tagged by evidential status (significant / null /
+  conjecture). (§6–7)
 - **Open code and archived results** so the comparison is extensible —
   the artifact prior work omitted. (§8)
 
@@ -77,9 +80,10 @@ differ in method (Bayesian optimization vs meta-RL), tracker (JPDA on
 Stone Soup vs UKF on a proprietary FMCW pipeline), and reproducibility
 (open).
 
-**BO for tracker hyperparameters.** A FUSION 2021 paper tunes a GM-PHD
-tracker offline with TPE/SMAC/Spearmint — per-scenario, no context, no
-transfer. We include this regime as our `vanilla_bo` baseline.
+**BO for tracker hyperparameters.** Fleck & Zoellner (2021, FUSION) tune
+a GM-PHD tracker offline with TPE/SMAC/Spearmint — per-scenario, no
+context, no transfer. We include this regime as our `vanilla_bo`
+baseline.
 
 **Contextual Bayesian optimization.** Krause & Ong (2011) introduced
 contextual GP-UCB; transfer/meta-BO surveys (Bai et al., 2023) situate
@@ -156,26 +160,54 @@ Figure 2: per-cell-kind breakdown (`benchmark_by_kind.png`).
 (80.81) sits above every tuned method's CI upper bound; ≈32–34%
 improvement.
 
-**F2 — one-shot contextual BO is the worst learned method and is
-actively harmful under distribution shift (headline).** It is worse on
-the mean than random search and carries ~1.6× the variance of every
-other method. On the clutter-extrapolation cells (N=10, clutter=8) it
-returns 154.7 / 109.7 — *worse than untuned default* (135.8 / 108.4) —
-because the GP posterior mean confidently extrapolates outside training
-support.
+**F2 — one-shot contextual BO is the worst learned method on average and
+fails catastrophically under clutter shift (headline).** Its mean (75.0)
+is worst among learned methods — worse than random search — and it
+carries ~1.6× the variance of every other method; this ranking is robust
+across all n=12 points. The dramatic "worse than untuned default"
+behaviour is precisely scoped: it occurs on the single clutter-
+extrapolation cell (N=10, clutter=8, training clutter capped at 6), on
+2 of its 3 seeds (154.7 and 109.7 vs default 135.8 and 108.4; the third
+seed, 60.0, is fine). A poor interpolation point (98.7) also contributes.
+The mechanism is the unbounded GP posterior mean confidently
+extrapolating outside training support. We do not claim contextual BO
+*always* underperforms defaults — we claim it is the worst learned
+method in aggregate and is *unsafe* (high-variance, capable of
+sub-default proposals) precisely where an autotuner most needs to be
+safe.
 
 **F3 — among per-scenario / hybrid methods, nothing beats anything
 (null).** Vanilla BO (61.5), warm-start (59.9), PPO one-shot (61.8) are
-statistically indistinguishable; warm-start's best mean is noise
-(consistent with the Week-1 gate failing its ≤4-trial criterion).
+statistically indistinguishable (heavily overlapping CIs);
+warm-start's best mean is within noise (consistent with the Week-1 gate
+failing its pre-registered ≤4-trial criterion). This is a null result,
+reported as one.
 
-**F4 — context-conditioned RL degrades gracefully where the
-context-conditioned GP does not.** PPO one-shot is also one-shot and
-context-conditioned, yet returns 60.4 / 90.2 / 62.9 on the same
-clutter-extrapolation cells where contextual BO collapses. The bounded,
-VecNormalize-clipped RL policy extrapolates more safely than the GP
-posterior mean — a methodological observation, not just a benchmark
-number.
+**F4 — a conjecture: context-conditioned RL appears to degrade more
+gracefully than the context-conditioned GP.** On the same clutter-
+extrapolation cell, PPO returns 60.4 / 90.2 / 62.9 versus contextual
+BO's 154.7 / 109.7 / 60.0 — PPO degrades (90.2 on the middle seed) but
+does not collapse. This is **3 points per method on one cell**; we
+present it as a hypothesis, not a result. A plausible mechanism is that
+PPO's bounded (tanh-squashed) action head and clipped, normalised
+observations cap how bad a proposal can be, whereas an unconstrained GP
+posterior mean has no such floor. Confirming this would need a dedicated
+experiment (more extrapolation cells, ablating the action bound); we
+flag it as the most interesting open question the benchmark surfaces.
+
+**Statistical honesty.** We state the evidential status of each finding
+explicitly, because this paper criticizes prior work for overclaiming and
+must not repeat it. **F1** (tuning > default) is statistically supported:
+default's 95% CI does not overlap the tuned methods'. **F2** is a
+ranking + variance finding (contextual BO has the worst mean and ~1.6×
+the variance over n=12); the "sub-default" instances are 2 of 3 seeds on
+one cell and are reported as such, not generalised. **F3** is a null —
+we do not claim warm-start or any method is best. **F4** is an
+explicitly labelled conjecture from 3 points per method on a single
+cell. n=12 (3 seeds) is sufficient for F1 (significant), F2 (a
+variance/ranking story that more seeds only sharpen), and F3 (a null
+more seeds only reconfirm); it is *not* sufficient to elevate F4 beyond
+a conjecture, and we do not.
 
 ## 7. Discussion
 
@@ -188,14 +220,16 @@ support, so on out-of-distribution clutter it proposes parameters worse
 than doing no tuning at all. For an operational autotuner this is the
 opposite of a safe default.
 
-**RL extrapolates more gracefully than the GP.** PPO and contextual BO
-are both one-shot context-conditioned predictors, yet PPO does not
-collapse on the extrapolation cells. We attribute this to the bounded
-action head and clipped, normalised observations: the policy cannot emit
-arbitrarily bad parameters, whereas an unconstrained GP posterior mean
-can. This suggests that if one insists on one-shot context conditioning,
-a bounded learned policy is safer than a GP — but neither beats cheap
-per-scenario BO.
+**RL *may* extrapolate more gracefully than the GP (conjecture).** On the
+one clutter-extrapolation cell PPO degrades but does not collapse while
+contextual BO does (F4). We *conjecture* this is because PPO's bounded
+action head and clipped observations cap how bad a proposal can be,
+whereas an unconstrained GP posterior mean has no floor. We deliberately
+do not present this as a result — it rests on 3 points per method on one
+cell. We flag it because, if it holds under a dedicated experiment, it
+has a clean operational implication: when one-shot context conditioning
+is unavoidable, prefer a bounded learned policy to a GP posterior mean.
+Either way, neither one-shot method beats cheap per-scenario BO.
 
 **Warm-starting accelerates but does not improve.** Seeding per-scenario
 BO from the contextual prior reaches a given quality in fewer trials
@@ -229,10 +263,15 @@ READMEs and reproduce commands. CI runs the test suite on 3.11/3.12.
 - Single tracker family (JPDA); MHT/IMM/RFS untested.
 - 3-D parameter space; IMM model weights and track init/delete
   thresholds excluded.
-- n = 12 held-out points; CIs are wide. (Expandable — PPO is cached.)
-- Hand-engineered context features; learned/embedding contexts and
-  OOD-aware fallback (à la Ott et al. 2022) are open directions and
-  could plausibly change the one-shot conclusion.
+- n = 12 held-out points (4 cells × 3 seeds). Adequate for F1
+  (significant) and F2 (a ranking/variance story); insufficient to
+  elevate F4 past a conjecture. Expandable to 5+ seeds cheaply (PPO is
+  cached) if a reviewer wants tighter intervals on F3's null.
+- Hand-engineered context features; learned/embedding contexts and an
+  OOD-aware fallback (à la Ott et al. 2022's uncertainty gating) are
+  open directions and could plausibly rescue the one-shot regime —
+  notably, an OOD detector that declined to act on the clutter-
+  extrapolation cell would remove F2's catastrophic instances.
 - ~10–15% residual prior-art risk: SPIE Defense, IEEE Radar Conf, and
   non-English radar venues not exhaustively combed.
 
@@ -251,5 +290,6 @@ READMEs and reproduce commands. CI runs the test suite on 3.11/3.12.
 - Balandat et al. (2020). BoTorch. NeurIPS.
 - Hiles et al. Stone Soup. (Dstl.)
 - Schulman et al. (2017). Proximal Policy Optimization. arXiv:1707.06347.
-- *(Find authors + cite the FUSION 2021 "Tuning MOT with BO" paper,
-  IEEE Xplore 9626895.)*
+- Fleck, Zoellner (2021). Tuning Multi Object Tracking Systems using
+  Bayesian Optimization. *24th Int. Conf. on Information Fusion
+  (FUSION)*. (TPE/SMAC/Spearmint on GM-PHD; per-scenario, no context.)
