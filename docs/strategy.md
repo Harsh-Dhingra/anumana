@@ -95,9 +95,14 @@ positioning.
       significant at n=12. Per the FAIL branch below, the paper is now
       a **pure honest-benchmark + negative-results study**. Warm-start
       is reported as a caveated documented attempt, not the headline.
-- [ ] Week 2: joblib parallelism + full grid (benchmark core)
-- [ ] Week 3: paper draft (honest-benchmark framing, NeurIPS ICBINB /
-      ICML AutoML)
+- [~] Week 2: joblib parallelism done (906b29c); benchmark harness +
+      PPO caching done (3047ac7); full lean benchmark run in flight.
+- [~] Week 3 (started early, in parallel with the Week-2 run):
+      `paper/draft.md` scaffolded — all sections writable before the
+      numbers are written; results table has `[[FILL]]` markers pulled
+      from the benchmark JSON when it lands. Public README rewritten to
+      honestly state the negative finding (was overclaiming "contextual
+      BO" as the headline method — a credibility risk on a public repo).
 - [ ] Week 4: arXiv + submission
 
 ## Post-gate decision (2026-05-17)
